@@ -4,6 +4,41 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="«Пепел и лёд» — постапокалиптическая игра о выживании в ядерную зиму. Механики выживания, оружие, мораль и выбор.">
+<meta name="keywords" content="постапокалипсис, игра, выживание, ядерная зима, инди, пепел и лёд, ash and ice">
+<meta name="author" content="MrMaksim2025">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0d1117">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Пепел и лёд — постапокалипсис о выживании">
+<meta property="og:description" content="Инди-игра о выживании в ядерную зиму. Механики выживания, мораль, оружие и право выбирать свою судьбу.">
+<meta property="og:url" content="https://mrmaksim2025.github.io/ash-and-ice/">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="Пепел и лёд">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Пепел и лёд — постапокалипсис о выживании">
+<meta name="twitter:description" content="Инди-игра о выживании в ядерную зиму. Механики выживания, мораль, оружие и право выбирать свою судьбу.">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Пепел и лёд",
+  "alternateName": "Ash and Ice",
+  "description": "Постапокалиптическая игра о выживании в ядерную зиму. Механики выживания, мораль, оружие и выбор.",
+  "genre": ["Survival", "Post-apocalyptic", "Horror"],
+  "gamePlatform": ["PC", "Unity"],
+  "applicationCategory": "Game",
+  "operatingSystem": "Windows, Linux",
+  "inLanguage": "ru",
+  "author": {
+    "@type": "Organization",
+    "name": "MrMaksim2025"
+  }
+}
+</script>
+
 <title>Пепел и лёд — постапокалипсис о выживании</title>
 <style>
   :root {
@@ -15,7 +50,20 @@
     --ice-soft: #1b2733;
     --blood: #c0392b;
     --line: #26313d;
+    --geiger: #4ade80;
   }
+
+  body.light {
+    --bg: #f0f3f7;
+    --bg-soft: #ffffff;
+    --ink: #1a1f26;
+    --muted: #5a6675;
+    --ice: #3d7a9e;
+    --ice-soft: #e1ebf2;
+    --blood: #b03225;
+    --line: #d0d7e0;
+  }
+
   * { box-sizing: border-box; }
   html, body { margin: 0 !important; padding: 0 !important; }
   html { scroll-behavior: smooth; }
@@ -24,8 +72,305 @@
     background: var(--bg);
     color: var(--ink);
     font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    transition: background .4s ease, color .4s ease;
   }
   main { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 3rem; }
+
+  /* ===== ЛОАДЕР ===== */
+  .loader {
+    position: fixed; inset: 0; z-index: 10000;
+    background: #05080a;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: opacity .8s ease, visibility .8s ease;
+  }
+  .loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  .loader-title {
+    color: var(--geiger);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 1rem; letter-spacing: .3em;
+    text-transform: uppercase; margin-bottom: 2rem;
+    opacity: .8;
+  }
+
+  .geiger-box {
+    border: 2px solid var(--geiger);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    background: #0a1410;
+    box-shadow: 0 0 30px rgba(74,222,128,.3), inset 0 0 20px rgba(74,222,128,.08);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 1rem;
+    min-width: 280px;
+  }
+
+  .geiger-arrow {
+    width: 240px; height: 60px;
+    position: relative;
+    background: linear-gradient(to top, rgba(74,222,128,.08), transparent);
+    border-bottom: 1px solid rgba(74,222,128,.3);
+    overflow: hidden;
+  }
+  .geiger-arrow::before {
+    content: '';
+    position: absolute; bottom: 0; left: 50%;
+    width: 2px; height: 100%;
+    background: rgba(74,222,128,.2);
+    transform: translateX(-50%);
+  }
+  .geiger-needle {
+    position: absolute; bottom: 0; left: 50%;
+    width: 3px; height: 50px;
+    background: var(--geiger);
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(0deg);
+    box-shadow: 0 0 8px var(--geiger);
+    transition: transform .08s ease-out;
+    border-radius: 2px 2px 0 0;
+  }
+  .geiger-scale {
+    display: flex; justify-content: space-between;
+    width: 240px;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .65rem; color: rgba(74,222,128,.5);
+    letter-spacing: .1em;
+  }
+
+  .geiger-digits {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 2.4rem; color: var(--geiger);
+    letter-spacing: .1em;
+    text-shadow: 0 0 12px rgba(74,222,128,.7);
+    display: flex; gap: .3rem;
+  }
+  .geiger-digits span {
+    display: inline-block;
+    min-width: 1.2rem;
+    text-align: center;
+  }
+
+  .geiger-label {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .7rem; color: rgba(74,222,128,.6);
+    letter-spacing: .25em; text-transform: uppercase;
+  }
+
+  .geiger-status {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .8rem; color: rgba(74,222,128,.8);
+    margin-top: 1.5rem; letter-spacing: .15em;
+    min-height: 1.2em;
+  }
+
+  /* ===== ОСНОВНОЙ САЙТ ===== */
+  .theme-toggle {
+    position: fixed; top: 1rem; right: 1rem; z-index: 999;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--bg-soft);
+    color: var(--ice); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; transition: transform .3s ease, background .3s ease;
+  }
+  .theme-toggle:hover { transform: scale(1.1) rotate(15deg); }
+
+  .music-toggle {
+    position: fixed; top: 1rem; right: 4.5rem; z-index: 999;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--bg-soft);
+    color: var(--ice); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; transition: transform .3s ease, background .3s ease;
+  }
+  .music-toggle:hover { transform: scale(1.1); }
+  .music-toggle.playing { color: var(--blood); }
+
+  .sound-toggle {
+    position: fixed; top: 1rem; right: 8rem; z-index: 999;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--bg-soft);
+    color: var(--ice); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; transition: transform .3s ease, background .3s ease;
+  }
+  .sound-toggle:hover { transform: scale(1.1); }
+  .sound-toggle.muted { color: var(--muted); opacity: .6; }
+
+  .lang-toggle {
+    position: fixed; top: 1rem; right: 11.5rem; z-index: 999;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--bg-soft);
+    color: var(--ice); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700;
+    transition: transform .3s ease, background .3s ease;
+  }
+  .lang-toggle:hover { transform: scale(1.1); }
+
+  /* ===== НАВИГАЦИЯ ===== */
+  .nav-toggle {
+    position: fixed; bottom: 1rem; right: 1rem; z-index: 1001;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--ice); color: #0a0e12;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 6px 20px rgba(111,168,201,.4);
+    transition: transform .3s ease, box-shadow .3s ease;
+  }
+  .nav-toggle:hover { transform: scale(1.08); box-shadow: 0 8px 26px rgba(111,168,201,.55); }
+  .nav-toggle.open { transform: rotate(90deg); }
+
+  .nav-menu {
+    position: fixed; bottom: 4.5rem; right: 1rem; z-index: 1000;
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: .6rem .4rem;
+    display: flex; flex-direction: column; gap: .15rem;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    min-width: 200px;
+    opacity: 0; visibility: hidden; transform: translateY(10px) scale(.95);
+    transform-origin: bottom right;
+    transition: opacity .25s ease, transform .3s cubic-bezier(.34,1.4,.64,1), visibility .25s ease;
+  }
+  .nav-menu.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+
+  .nav-item {
+    display: flex; align-items: center; gap: .7rem;
+    padding: .55rem .9rem; border-radius: 8px;
+    color: var(--ink); text-decoration: none; font-size: .9rem;
+    font-weight: 600; cursor: pointer;
+    transition: background .2s ease, color .2s ease, transform .2s ease;
+    border: none; background: none; text-align: left; width: 100%;
+  }
+  .nav-item:hover { background: var(--ice-soft); color: var(--ice); transform: translateX(3px); }
+  .nav-item .nav-icon { font-size: 1.05rem; width: 1.4rem; text-align: center; }
+
+  .mobile-nav {
+    position: fixed; inset: 0; z-index: 1002;
+    background: rgba(5, 8, 12, .95);
+    backdrop-filter: blur(6px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: .5rem; padding: 2rem 1.5rem;
+    opacity: 0; visibility: hidden;
+    transition: opacity .35s ease, visibility .35s ease;
+    overflow-y: auto;
+  }
+  .mobile-nav.visible { opacity: 1; visibility: visible; }
+
+  .mobile-nav-close {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--bg-soft); color: var(--ink);
+    border: 1px solid var(--line);
+    font-size: 1.4rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .3s ease;
+  }
+  .mobile-nav-close:hover { transform: rotate(90deg); }
+
+  .mobile-nav-title {
+    color: var(--blood); font-size: .85rem;
+    letter-spacing: .25em; text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .mobile-nav-item {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .8rem 1.4rem; border-radius: 10px;
+    color: var(--ink); text-decoration: none; font-size: 1.05rem;
+    font-weight: 600; cursor: pointer;
+    transition: background .2s ease, color .2s ease, transform .2s ease;
+    border: none; background: none; width: 100%; max-width: 320px; text-align: left;
+  }
+  .mobile-nav-item:hover { background: var(--ice-soft); color: var(--ice); transform: translateX(5px); }
+  .mobile-nav-item .nav-icon { font-size: 1.2rem; width: 1.6rem; text-align: center; }
+
+  /* ===== МОДАЛКА ЛОКАЦИИ ===== */
+  .loc-modal-backdrop {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(5, 8, 12, .82);
+    backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.25rem;
+    opacity: 0; visibility: hidden;
+    transition: opacity .3s ease, visibility .3s ease;
+  }
+  .loc-modal-backdrop.visible { opacity: 1; visibility: visible; }
+
+  .loc-modal {
+    background: var(--bg);
+    border: 1px solid var(--ice);
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.7);
+    max-width: 520px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+    padding: 1.5rem 1.6rem 1.7rem;
+    transform: translateY(14px) scale(.96);
+    transition: transform .4s cubic-bezier(.34,1.3,.64,1);
+    position: relative;
+  }
+  .loc-modal-backdrop.visible .loc-modal { transform: translateY(0) scale(1); }
+
+  .loc-modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--bg-soft);
+    color: var(--muted); font-size: 1.2rem; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .3s ease, border-color .3s ease, color .3s ease;
+  }
+  .loc-modal-close:hover { border-color: var(--ice); color: var(--ice); transform: rotate(90deg); }
+
+  .loc-modal-title {
+    color: var(--ice); font-size: 1.35rem; font-weight: 800;
+    margin: 0 0 .3rem; line-height: 1.2;
+    padding-right: 2.5rem;
+  }
+  .loc-modal-subtitle {
+    color: var(--muted); font-size: .9rem;
+    margin: 0 0 1.2rem;
+  }
+
+  .loc-modal-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: .6rem; margin-bottom: 1.2rem;
+  }
+  .loc-stat {
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 8px; padding: .6rem .8rem;
+    display: flex; flex-direction: column; gap: .15rem;
+  }
+  .loc-stat-label {
+    color: var(--muted); font-size: .72rem;
+    letter-spacing: .12em; text-transform: uppercase;
+  }
+  .loc-stat-value {
+    color: var(--ink); font-size: 1rem; font-weight: 700;
+  }
+  .loc-stat-value.diff-low { color: #7ee0a1; }
+  .loc-stat-value.diff-mid { color: #e0d57e; }
+  .loc-stat-value.diff-high { color: #e0a37e; }
+  .loc-stat-value.diff-deadly { color: #e07e7e; }
+  .loc-stat-value.diff-suicide { color: #b07ee0; }
+
+  .loc-modal-section-title {
+    color: var(--blood); font-size: .78rem;
+    letter-spacing: .18em; text-transform: uppercase;
+    margin: 1rem 0 .4rem;
+  }
+  .loc-modal-text {
+    color: var(--muted); font-size: .95rem;
+    margin: 0 0 .6rem; line-height: 1.6;
+  }
+  .loc-modal-enemies {
+    color: var(--ink); font-size: .95rem;
+    background: var(--bg-soft); border-left: 3px solid var(--blood);
+    border-radius: 6px; padding: .6rem .9rem;
+    margin: 0 0 .6rem;
+  }
 
   header { text-align: center; padding: 10rem 0 1rem; margin: 0; }
   header .kicker { margin-top: 0 !important; }
@@ -38,9 +383,18 @@
   .cta { margin-top: 1.8rem; display: flex; gap: .8rem; justify-content: center;
          flex-wrap: wrap; }
   .btn { display: inline-block; padding: .7rem 1.5rem; border-radius: 8px;
-         font-weight: 700; text-decoration: none; font-size: 1rem; }
+         font-weight: 700; text-decoration: none; font-size: 1rem;
+         transition: transform .2s ease, box-shadow .2s ease; cursor: pointer; border: none; }
+  .btn:hover { transform: translateY(-2px); }
   .btn-primary { background: var(--ice); color: #0a0e12; }
-  .btn-ghost { border: 1px solid var(--line); color: var(--ink); }
+  .btn-ghost { border: 1px solid var(--line); color: var(--ink); background: transparent; }
+
+  .btn-disabled {
+    display: inline-block; padding: .7rem 1.5rem; border-radius: 8px;
+    font-weight: 700; text-decoration: none; font-size: 1rem;
+    border: 1px solid var(--line); color: var(--muted);
+    background: transparent; cursor: not-allowed; opacity: .6;
+  }
 
   section { margin: 3rem 0; padding-top: 1rem; scroll-margin-top: 1rem; }
   h2 { font-size: 1.35rem; margin: 0 0 .6rem; color: var(--ink);
@@ -55,14 +409,15 @@
   }
   .pitch p { margin: 0; }
 
-  /* КУБИКИ */
   .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
               gap: .9rem; margin-top: 1.2rem; position: relative; }
   .card { border: 1px solid var(--line); border-radius: 10px;
           background: var(--bg-soft); cursor: pointer;
-          transition: border-color .2s, background .2s;
+          transition: border-color .3s cubic-bezier(.4,0,.2,1),
+                      background .3s cubic-bezier(.4,0,.2,1),
+                      transform .3s cubic-bezier(.4,0,.2,1);
           -webkit-tap-highlight-color: transparent; }
-  .card:hover { border-color: var(--ice); }
+  .card:hover { border-color: var(--ice); transform: translateY(-3px); }
   .card-head { display: flex; justify-content: space-between; align-items: flex-start;
                gap: .6rem; padding: 1rem 1.1rem; min-height: 6.2rem; }
   .card-head b { color: var(--ice); font-size: 1.02rem; display: block;
@@ -72,20 +427,28 @@
   .tog { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border: 1px solid var(--line);
          border-radius: 50%; color: var(--ice); display: flex; align-items: center;
          justify-content: center; font-size: 1.1rem; line-height: 1;
-         user-select: none; }
+         user-select: none;
+         transition: transform .45s cubic-bezier(.34,1.56,.64,1),
+                     border-color .3s ease, color .3s ease; }
+  .card.open .tog { transform: rotate(45deg); border-color: var(--ice); }
+
   .detail { position: absolute; top: 0; left: 0; right: 0; z-index: 20;
             background: var(--bg); border: 1px solid var(--ice); border-radius: 12px;
             box-shadow: 0 18px 40px rgba(0,0,0,.55); padding: 1.2rem 1.3rem 1.4rem;
-            opacity: 0; visibility: hidden; transform: translateY(6px);
-            transition: opacity .25s ease, transform .3s ease, visibility .25s; }
-  .detail.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+            opacity: 0; visibility: hidden;
+            transform: translateY(12px) scale(.97);
+            transition: opacity .45s cubic-bezier(.4,0,.2,1),
+                        transform .5s cubic-bezier(.34,1.4,.64,1),
+                        visibility .45s ease; }
+  .detail.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
   .detail-head { display: flex; justify-content: space-between; align-items: flex-start;
                  gap: .8rem; margin-bottom: .6rem; }
   .detail-head b { color: var(--ice); font-size: 1.15rem; line-height: 1.3; }
   .close { flex: 0 0 auto; width: 1.7rem; height: 1.7rem; border: 1px solid var(--line);
            border-radius: 50%; color: var(--muted); background: none; font-size: 1.2rem;
-           line-height: 1; cursor: pointer; }
-  .close:hover { border-color: var(--ice); color: var(--ice); }
+           line-height: 1; cursor: pointer;
+           transition: transform .3s ease, border-color .3s ease, color .3s ease; }
+  .close:hover { border-color: var(--ice); color: var(--ice); transform: rotate(90deg); }
   .detail p { margin: 0; color: var(--muted); }
 
   .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -93,7 +456,8 @@
   .shot { aspect-ratio: 16 / 9; border: 1px dashed var(--line); border-radius: 10px;
           background: var(--bg-soft); display: flex; align-items: center;
           justify-content: center; color: var(--muted); font-size: .9rem;
-          font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+          font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+          text-align: center; padding: .5rem; }
 
   .subhead { color: var(--ice); font-weight: 700; font-size: 1rem;
              margin: 1.6rem 0 .5rem; }
@@ -108,6 +472,181 @@
              background: var(--bg-soft); }
   .data td { white-space: nowrap; }
 
+  .builder {
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 12px; padding: 1.4rem 1.5rem; margin-top: 1.2rem;
+  }
+  .builder-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem; margin-bottom: 1.2rem;
+  }
+  .builder-field label {
+    display: block; color: var(--ice); font-weight: 700;
+    font-size: .9rem; margin-bottom: .35rem;
+  }
+  .builder-field select {
+    width: 100%; padding: .6rem .8rem; border-radius: 8px;
+    background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); font-size: .95rem;
+    cursor: pointer; transition: border-color .2s ease;
+  }
+  .builder-field select:hover { border-color: var(--ice); }
+  .builder-result {
+    background: var(--bg); border: 1px solid var(--ice);
+    border-radius: 10px; padding: 1rem 1.2rem;
+  }
+  .builder-result h4 { margin: 0 0 .6rem; color: var(--ice); font-size: 1rem; }
+  .builder-result .stat {
+    display: flex; justify-content: space-between;
+    padding: .3rem 0; border-bottom: 1px dashed var(--line);
+    font-size: .92rem;
+  }
+  .builder-result .stat:last-child { border-bottom: none; }
+  .builder-result .stat b { color: var(--ice); }
+
+  .random-btn {
+    display: block; margin: 1rem auto 0;
+    padding: .6rem 1.4rem; border-radius: 8px;
+    background: var(--blood); color: #fff;
+    border: none; font-weight: 700; font-size: .95rem;
+    cursor: pointer; transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .random-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(192,57,43,.4); }
+
+  .map-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: .8rem; margin-top: 1.2rem;
+  }
+  .map-cell {
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 10px; padding: .9rem 1rem; cursor: pointer;
+    transition: transform .25s ease, border-color .25s ease;
+    position: relative;
+  }
+  .map-cell:hover { transform: translateY(-3px); border-color: var(--ice); }
+  .map-cell .name { color: var(--ice); font-weight: 700; font-size: .98rem; }
+  .map-cell .type { color: var(--muted); font-size: .82rem; margin-top: .2rem; }
+  .map-cell .diff {
+    display: inline-block; margin-top: .5rem;
+    padding: .15rem .55rem; border-radius: 6px;
+    font-size: .75rem; font-weight: 700;
+  }
+  .diff-1, .diff-2 { background: #1e4d2b; color: #7ee0a1; }
+  .diff-3, .diff-4 { background: #4d4a1e; color: #e0d57e; }
+  .diff-5, .diff-6 { background: #4d2a1e; color: #e0a37e; }
+  .diff-7, .diff-8 { background: #4d1e1e; color: #e07e7e; }
+  .diff-9, .diff-10 { background: #2a1e4d; color: #b07ee0; }
+
+  .walls {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem; margin-top: 1.2rem;
+  }
+  .wall {
+    border: 1px solid var(--line); border-radius: 10px;
+    overflow: hidden; background: var(--bg-soft);
+    transition: transform .3s ease, border-color .3s ease;
+  }
+  .wall:hover { transform: translateY(-4px); border-color: var(--ice); }
+  .wall-preview {
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #1b2733, #0d1117);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: .85rem; text-align: center; padding: .5rem;
+  }
+  .wall-info { padding: .8rem 1rem; }
+  .wall-info b { color: var(--ice); display: block; font-size: .95rem; }
+  .wall-info span { color: var(--muted); font-size: .82rem; }
+  .wall-dl {
+    display: block; text-align: center; padding: .5rem;
+    background: var(--bg); color: var(--ice);
+    text-decoration: none; font-weight: 700; font-size: .88rem;
+    border-top: 1px solid var(--line);
+    transition: background .2s ease;
+  }
+  .wall-dl:hover { background: var(--ice-soft); }
+
+  .community {
+    text-align: center; padding: 2rem 1rem;
+    border: 1px dashed var(--line); border-radius: 12px;
+    background: var(--bg-soft); margin-top: 1.2rem;
+  }
+  .community h3 { color: var(--ice); margin: 0 0 .5rem; font-size: 1.1rem; }
+  .community p { color: var(--muted); max-width: 50ch; margin: .4rem auto 1rem; }
+
+  .faq-item {
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg-soft); margin-bottom: .7rem;
+    overflow: hidden;
+  }
+  .faq-q {
+    padding: .9rem 1.1rem; cursor: pointer;
+    font-weight: 700; color: var(--ice); font-size: .95rem;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: background .2s ease;
+  }
+  .faq-q:hover { background: var(--ice-soft); }
+  .faq-q::after { content: '+'; font-size: 1.2rem; transition: transform .3s ease; }
+  .faq-item.open .faq-q::after { transform: rotate(45deg); }
+  .faq-a {
+    max-height: 0; overflow: hidden;
+    padding: 0 1.1rem; color: var(--muted); font-size: .92rem;
+    transition: max-height .4s ease, padding .4s ease;
+  }
+  .faq-item.open .faq-a { max-height: 300px; padding: 0 1.1rem 1rem; }
+
+  .placeholder-section {
+    text-align: center; padding: 2rem 1rem;
+    border: 1px dashed var(--line); border-radius: 12px;
+    background: var(--bg-soft); margin-top: 1.2rem;
+  }
+  .placeholder-section h3 { color: var(--ice); margin: 0 0 .5rem; font-size: 1.05rem; }
+  .placeholder-section p { color: var(--muted); max-width: 55ch; margin: .4rem auto 1rem; font-size: .92rem; }
+  .placeholder-section .soon {
+    display: inline-block; padding: .5rem 1.2rem;
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 8px; color: var(--muted); font-weight: 700; font-size: .85rem;
+  }
+
+  .geiger-mini {
+    position: fixed; bottom: 1rem; right: 5rem; z-index: 999;
+    background: #0a1410; border: 1px solid rgba(74,222,128,.5);
+    border-radius: 8px; padding: .4rem .7rem;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .72rem; color: var(--geiger);
+    display: flex; align-items: center; gap: .5rem;
+    box-shadow: 0 0 12px rgba(74,222,128,.2);
+    transition: opacity .3s ease;
+  }
+  .geiger-mini .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--geiger); box-shadow: 0 0 6px var(--geiger);
+    animation: geigerPulse 1.2s infinite;
+  }
+  @keyframes geigerPulse {
+    0%, 100% { opacity: .3; }
+    50% { opacity: 1; }
+  }
+
+  .survivor-quote {
+    position: fixed; bottom: 1rem; left: 1rem; z-index: 999;
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-left: 3px solid var(--blood);
+    border-radius: 8px; padding: .5rem .9rem;
+    font-size: .78rem; color: var(--muted);
+    max-width: 320px; font-style: italic;
+    transition: opacity .5s ease;
+  }
+  .survivor-quote b { color: var(--blood); font-style: normal; }
+
+  .views-counter {
+    position: fixed; bottom: 4.5rem; left: 1rem; z-index: 999;
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 20px; padding: .35rem .85rem;
+    font-size: .78rem; color: var(--muted);
+    display: flex; align-items: center; gap: .4rem;
+  }
+  .views-counter b { color: var(--ice); }
+
   .donate { text-align: center; padding: 2.2rem 1rem; border: 1px solid var(--line);
             border-radius: 12px; background: var(--bg-soft); }
   .donate h2 { border: none; padding: 0; color: var(--ink); }
@@ -117,18 +656,10 @@
   footer { color: var(--muted); font-size: .82rem; border-top: 1px solid var(--line);
            margin-top: 3rem; padding-top: 1rem; text-align: center; }
 
-  /* Фоновые эффекты */
   .fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
-
-  /* Кровавые сплэттеры в верхних углах */
   .blood-splat {
-    position: absolute;
-    top: 0;
-    width: 340px;
-    height: auto;
-    pointer-events: none;
-    opacity: .85;
-    /* Красный цвет поверх чёрного фона — просто фильтр */
+    position: absolute; top: 0; width: 340px; height: auto;
+    pointer-events: none; opacity: .85;
     filter: brightness(1) saturate(1.4) contrast(1.1);
   }
   .blood-splat.tl { left: 0; }
@@ -148,18 +679,132 @@
   .snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                  z-index: 3; pointer-events: none; }
 
+  .lang-en { display: none; }
+  body.en .lang-ru { display: none; }
+  body.en .lang-en { display: inline; }
+
+  @media (max-width: 700px) {
+    .nav-menu { display: none; }
+  }
+  @media (min-width: 701px) {
+    .mobile-nav { display: none !important; }
+  }
   @media (max-width: 560px) {
     h1 { font-size: 2.2rem; }
     header { padding-top: 6rem; }
     .blood-splat { width: 220px; }
+    .theme-toggle { top: .6rem; right: .6rem; width: 38px; height: 38px; font-size: 1.1rem; }
+    .music-toggle { top: .6rem; right: 3.6rem; width: 38px; height: 38px; font-size: 1rem; }
+    .sound-toggle { top: .6rem; right: 6.6rem; width: 38px; height: 38px; font-size: .95rem; }
+    .lang-toggle { top: .6rem; right: 9.6rem; width: 38px; height: 38px; font-size: .75rem; }
+    .views-counter { bottom: 4rem; left: .5rem; font-size: .7rem; }
+    .survivor-quote { display: none; }
+    .geiger-mini { bottom: .5rem; right: 4.5rem; font-size: .65rem; padding: .3rem .5rem; }
+    .geiger-box { min-width: 220px; padding: 1rem 1.2rem; }
+    .geiger-arrow, .geiger-scale { width: 180px; }
+    .nav-toggle { width: 50px; height: 50px; font-size: 1.3rem; bottom: .7rem; right: .7rem; }
+    .loc-modal { padding: 1.2rem 1.1rem 1.3rem; }
+    .loc-modal-title { font-size: 1.15rem; }
   }
   @media print {
     body { background: #fff; color: #000; }
-    .donate, .cta, .fx-layer { display: none; }
+    .donate, .cta, .fx-layer, .theme-toggle, .music-toggle, .sound-toggle,
+    .lang-toggle, .views-counter, .survivor-quote, .geiger-mini, .loader,
+    .nav-toggle, .nav-menu, .mobile-nav, .loc-modal-backdrop { display: none; }
   }
 </style>
 </head>
 <body>
+
+  <div class="loader" id="loader">
+    <div class="loader-title">RAD · MONITOR · v1.0</div>
+    <div class="geiger-box">
+      <div class="geiger-arrow">
+        <div class="geiger-needle" id="geigerNeedle"></div>
+      </div>
+      <div class="geiger-scale">
+        <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+      </div>
+      <div class="geiger-digits" id="geigerDigits">
+        <span>0</span><span>0</span><span>0</span><span>.</span><span>0</span>
+      </div>
+      <div class="geiger-label">mSv/h</div>
+    </div>
+    <div class="geiger-status" id="geigerStatus">Инициализация...</div>
+  </div>
+
+  <button class="theme-toggle" id="themeToggle" aria-label="Сменить тему">🌙</button>
+  <button class="music-toggle" id="musicToggle" aria-label="Включить музыку">🎵</button>
+  <button class="sound-toggle" id="soundToggle" aria-label="Звуки интерфейса">🔊</button>
+  <button class="lang-toggle" id="langToggle" aria-label="Сменить язык">RU</button>
+
+  <div class="geiger-mini">
+    <div class="dot"></div>
+    <span id="geigerMini">0.12 mSv/h</span>
+  </div>
+
+  <div class="survivor-quote" id="survivorQuote">
+    <b>Дневник:</b> <span id="quoteText">...</span>
+  </div>
+
+  <div class="views-counter">👁 Просмотров: <b id="viewsCount">...</b></div>
+
+  <div class="loc-modal-backdrop" id="locModalBackdrop">
+    <div class="loc-modal" id="locModal">
+      <button class="loc-modal-close" id="locModalClose" aria-label="Закрыть">×</button>
+      <h3 class="loc-modal-title" id="locModalTitle">Локация</h3>
+      <p class="loc-modal-subtitle" id="locModalSubtitle">Тип</p>
+      <div class="loc-modal-stats">
+        <div class="loc-stat">
+          <span class="loc-stat-label">Сложность</span>
+          <span class="loc-stat-value" id="locModalDiff">—</span>
+        </div>
+        <div class="loc-stat">
+          <span class="loc-stat-label">Лут</span>
+          <span class="loc-stat-value" id="locModalLoot">—</span>
+        </div>
+      </div>
+      <div class="loc-modal-section-title">Кто живёт</div>
+      <div class="loc-modal-enemies" id="locModalEnemies">—</div>
+      <div class="loc-modal-section-title">Описание</div>
+      <p class="loc-modal-text" id="locModalNote">—</p>
+    </div>
+  </div>
+
+  <button class="nav-toggle" id="navToggle" aria-label="Навигация по сайту">☰</button>
+  <nav class="nav-menu" id="navMenu">
+    <a class="nav-item" href="#svoz"><span class="nav-icon">🎮</span> Что за игра</a>
+    <a class="nav-item" href="#features"><span class="nav-icon">⚙️</span> Ключевые механики</a>
+    <a class="nav-item" href="#screens"><span class="nav-icon">📸</span> Скриншоты</a>
+    <a class="nav-item" href="#donate"><span class="nav-icon">💰</span> Поддержать</a>
+    <a class="nav-item" href="#community"><span class="nav-icon">💬</span> Сообщество</a>
+    <a class="nav-item" href="#builder"><span class="nav-icon">🔧</span> Калькулятор билдов</a>
+    <a class="nav-item" href="#map"><span class="nav-icon">🗺️</span> Карта локаций</a>
+    <a class="nav-item" href="#faq"><span class="nav-icon">❓</span> Частые вопросы</a>
+    <a class="nav-item" href="#sponsors"><span class="nav-icon">🎥</span> Обзоры и спонсоры</a>
+    <a class="nav-item" href="#fanart"><span class="nav-icon">🎨</span> Фан-арты</a>
+    <a class="nav-item" href="#suggest"><span class="nav-icon">💡</span> Предложить идею</a>
+    <a class="nav-item" href="#wallpapers"><span class="nav-icon">🖼️</span> Обои</a>
+    <a class="nav-item" href="#mechanics"><span class="nav-icon">📊</span> Подробно</a>
+  </nav>
+
+  <div class="mobile-nav" id="mobileNav">
+    <button class="mobile-nav-close" id="mobileNavClose" aria-label="Закрыть">×</button>
+    <div class="mobile-nav-title">Навигация</div>
+    <a class="mobile-nav-item" href="#svoz"><span class="nav-icon">🎮</span> Что за игра</a>
+    <a class="mobile-nav-item" href="#features"><span class="nav-icon">⚙️</span> Ключевые механики</a>
+    <a class="mobile-nav-item" href="#screens"><span class="nav-icon">📸</span> Скриншоты</a>
+    <a class="mobile-nav-item" href="#donate"><span class="nav-icon">💰</span> Поддержать</a>
+    <a class="mobile-nav-item" href="#community"><span class="nav-icon">💬</span> Сообщество</a>
+    <a class="mobile-nav-item" href="#builder"><span class="nav-icon">🔧</span> Калькулятор</a>
+    <a class="mobile-nav-item" href="#map"><span class="nav-icon">🗺️</span> Карта локаций</a>
+    <a class="mobile-nav-item" href="#faq"><span class="nav-icon">❓</span> Частые вопросы</a>
+    <a class="mobile-nav-item" href="#sponsors"><span class="nav-icon">🎥</span> Обзоры и спонсоры</a>
+    <a class="mobile-nav-item" href="#fanart"><span class="nav-icon">🎨</span> Фан-арты</a>
+    <a class="mobile-nav-item" href="#suggest"><span class="nav-icon">💡</span> Предложить идею</a>
+    <a class="mobile-nav-item" href="#wallpapers"><span class="nav-icon">🖼️</span> Обои</a>
+    <a class="mobile-nav-item" href="#mechanics"><span class="nav-icon">📊</span> Подробно</a>
+  </div>
 
   <main>
   <header>
@@ -167,7 +812,7 @@
     <h1>Пепел&nbsp;и&nbsp;лёд</h1>
     <p class="tagline">Постапокалипсис в ядерную зиму. Одна пуля решает всё. Механики выживания, мораль и право выбирать свою судьбу.</p>
     <div class="cta">
-      <a class="btn btn-ghost" href="#mechanics">Узнать больше</a>
+      <span class="btn-disabled">Узнать больше (скоро)</span>
     </div>
   </header>
 
@@ -180,7 +825,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="features">
     <h2>Ключевые механики</h2>
     <div class="features">
       <div class="card" data-d="d1">
@@ -229,7 +874,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="screens">
     <h2>Скриншоты</h2>
     <p class="lead">Место под кадры из игры и геймплейные тизеры. Появятся, как только соберём первый билд.</p>
     <div class="shots">
@@ -248,8 +893,144 @@
     <p class="p-places">Здесь появятся ссылки на данаты, Discord и соцсети, когда соберём первые билды. Сейчас — заглушка.</p>
   </section>
 
+  <section id="community">
+    <h2>Сообщество</h2>
+    <div class="community">
+      <h3>💬 Discord-сервер</h3>
+      <p>Заходи в наш Discord: обсуждаем разработку, показываем эксклюзивы, слушаем ваши идеи и просто общаемся.</p>
+      <a class="btn btn-primary" href="https://discord.gg/xCRA2rbVM" target="_blank" rel="noopener">Присоединиться</a>
+    </div>
+  </section>
+
+  <section id="builder">
+    <h2>Калькулятор билдов</h2>
+    <p class="lead">Выбери снаряжение и посмотри итоговые характеристики. Или нажми «Случайный билд» — и получи готовый набор от игры.</p>
+    <div class="builder">
+      <div class="builder-grid">
+        <div class="builder-field">
+          <label for="bWeapon">Оружие</label>
+          <select id="bWeapon"></select>
+        </div>
+        <div class="builder-field">
+          <label for="bArmor">Броня</label>
+          <select id="bArmor"></select>
+        </div>
+        <div class="builder-field">
+          <label for="bHelmet">Шлем</label>
+          <select id="bHelmet"></select>
+        </div>
+        <div class="builder-field">
+          <label for="bAmmo">Патроны</label>
+          <select id="bAmmo"></select>
+        </div>
+      </div>
+      <div class="builder-result">
+        <h4>Твой билд</h4>
+        <div class="stat"><span>Урон (усреднённый)</span><b id="rDamage">—</b></div>
+        <div class="stat"><span>Защита от пуль</span><b id="rArmor">—</b></div>
+        <div class="stat"><span>Защита от осколков</span><b id="rFrag">—</b></div>
+        <div class="stat"><span>Защита от мутантов</span><b id="rMut">—</b></div>
+        <div class="stat"><span>Обзор (штраф)</span><b id="rVision">—</b></div>
+        <div class="stat"><span>Общий вес</span><b id="rWeight">—</b></div>
+        <div class="stat"><span>Мобильность</span><b id="rMobility">—</b></div>
+      </div>
+      <button class="random-btn" id="randomBtn">🎲 Случайный билд</button>
+    </div>
+  </section>
+
+  <section id="map">
+    <h2>Карта локаций</h2>
+    <p class="lead">Кликни по локации, чтобы увидеть, что там можно найти, кто живёт и насколько опасно.</p>
+    <div class="map-grid" id="mapGrid"></div>
+  </section>
+
+  <section id="faq">
+    <h2>Частые вопросы</h2>
+    <p class="lead">Собрали то, что чаще всего спрашивают в Discord и Telegram. Если ответа нет — пиши в Discord.</p>
+    <div style="margin-top:1.2rem;">
+      <div class="faq-item">
+        <div class="faq-q">Когда выйдет игра?</div>
+        <div class="faq-a">Точной даты нет. Сначала допилим сюжет (переписываем, чтобы не было проблем с АП), потом — альфа-версия. Следи за новостями в Discord.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">На чём делаете игру?</div>
+        <div class="faq-a">Движок — Unity. Модели — в Blender. Сайт — чистый HTML/CSS/JS (вот этот, который ты читаешь).</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Будет ли мультиплеер?</div>
+        <div class="faq-a">Пока нет. В планах — кооп на 2–4 человека, но это не скоро.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Можно ли помочь с разработкой?</div>
+        <div class="faq-a">Да! Заходи в Discord — там обсуждаем, кто чем может помочь: код, арты, звук, тесты.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Почему сюжет переделывают?</div>
+        <div class="faq-a">Первая версия была слишком похожа на «Метро: Исход». Мы не хотим проблем с авторскими правами, поэтому переписываем концепцию.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Будет ли игра на русском?</div>
+        <div class="faq-a">Да, русский — основной язык. Английская локализация — в планах.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sponsors">
+    <h2>Обзоры и спонсоры</h2>
+    <div class="placeholder-section">
+      <h3>🎥 Здесь будут обзоры от ютуберов</h3>
+      <p>Когда выйдет альфа-версия — сюда будем добавлять ролики от ютуберов и стримеров, которые расскажут про игру.</p>
+      <span class="soon">Скоро...</span>
+    </div>
+  </section>
+
+  <section id="fanart">
+    <h2>Фан-арты</h2>
+    <div class="placeholder-section">
+      <h3>🎨 Тут будут работы игроков</h3>
+      <p>Скидывай свои арты по игре в Discord — лучшие попадём сюда. Модерация через сообщество.</p>
+      <span class="soon">Скоро...</span>
+    </div>
+  </section>
+
+  <section id="suggest">
+    <h2>Предложить идею</h2>
+    <div class="placeholder-section">
+      <h3>💡 Есть идея для игры?</h3>
+      <p>Форма для предложений появится позже (нужна почта). Пока — пиши идеи в Discord, там их обсуждаем.</p>
+      <span class="soon">Скоро...</span>
+    </div>
+  </section>
+
+  <section id="wallpapers">
+    <h2>Обои для рабочего стола</h2>
+    <p class="lead">Скачивай арты и ставь на рабочий стол. Пока — заглушки, потом Артём нарисует настоящие.</p>
+    <div class="walls">
+      <div class="wall">
+        <div class="wall-preview">обои_01.png<br>(заглушка)</div>
+        <div class="wall-info"><b>ГГ с «Муркой»</b><span>1920×1080</span></div>
+        <a class="wall-dl" href="#">Скачать (скоро)</a>
+      </div>
+      <div class="wall">
+        <div class="wall-preview">обои_02.png<br>(заглушка)</div>
+        <div class="wall-info"><b>Поезд в снегу</b><span>1920×1080</span></div>
+        <a class="wall-dl" href="#">Скачать (скоро)</a>
+      </div>
+      <div class="wall">
+        <div class="wall-preview">обои_03.png<br>(заглушка)</div>
+        <div class="wall-info"><b>Байкал на рассвете</b><span>1920×1080</span></div>
+        <a class="wall-dl" href="#">Скачать (скоро)</a>
+      </div>
+      <div class="wall">
+        <div class="wall-preview">обои_04.png<br>(заглушка)</div>
+        <div class="wall-info"><b>Мобильные обои</b><span>1080×1920</span></div>
+        <a class="wall-dl" href="#">Скачать (скоро)</a>
+      </div>
+    </div>
+  </section>
+
   <section id="mechanics">
-    <h2>Механики</h2>
+    <h2>Подробно</h2>
     <p class="lead">Базовый состав оружия, брони и предметов в игре. Конкретные значения и редкость будут донастраиваться по ходу разработки.</p>
 
     <div class="subhead">Оружие</div>
@@ -389,9 +1170,7 @@
   </footer>
 </main>
 
-  <!-- Фоновые эффекты -->
   <div class="fx-layer" aria-hidden="true">
-    <!-- Левый верхний кровавый сплэттер -->
     <svg class="blood-splat tl" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id="bloodGrad" cx="20%" cy="20%" r="80%">
@@ -400,9 +1179,7 @@
           <stop offset="100%" stop-color="#3c0c08" stop-opacity="0"/>
         </radialGradient>
       </defs>
-      <!-- Основное пятно -->
       <path d="M0 0 H340 Q300 20 280 60 Q250 110 220 130 Q190 150 160 140 Q140 130 130 160 Q110 180 90 170 Q60 160 40 190 Q20 210 10 180 Q0 150 0 100 Z" fill="url(#bloodGrad)"/>
-      <!-- Крупные капли -->
       <circle cx="230" cy="90" r="14" fill="#7a1a10"/>
       <circle cx="150" cy="180" r="11" fill="#6a150d"/>
       <circle cx="60" cy="210" r="9" fill="#5c120c"/>
@@ -411,7 +1188,6 @@
       <circle cx="310" cy="130" r="5" fill="#6a150d"/>
       <circle cx="100" cy="90" r="8" fill="#7a1a10"/>
       <circle cx="40" cy="60" r="6" fill="#8f241a"/>
-      <!-- Средние капли -->
       <circle cx="250" cy="140" r="4" fill="#5c120c"/>
       <circle cx="180" cy="110" r="3" fill="#6a150d"/>
       <circle cx="130" cy="60" r="4" fill="#7a1a10"/>
@@ -420,62 +1196,6 @@
       <circle cx="210" cy="200" r="3" fill="#6a150d"/>
       <circle cx="320" cy="90" r="4" fill="#7a1a10"/>
       <circle cx="160" cy="230" r="3" fill="#5c120c"/>
-      <!-- Мелкие брызги (генерируем кучу) -->
-      <g fill="#8f241a">
-        <circle cx="60" cy="30" r="2"/><circle cx="95" cy="25" r="2"/>
-        <circle cx="140" cy="30" r="2.5"/><circle cx="175" cy="20" r="2"/>
-        <circle cx="215" cy="25" r="2"/><circle cx="260" cy="30" r="2.5"/>
-        <circle cx="300" cy="20" r="2"/><circle cx="330" cy="40" r="2"/>
-        <circle cx="45" cy="80" r="2"/><circle cx="75" cy="70" r="2.5"/>
-        <circle cx="110" cy="50" r="2"/><circle cx="155" cy="60" r="2"/>
-        <circle cx="190" cy="75" r="2.5"/><circle cx="240" cy="65" r="2"/>
-        <circle cx="275" cy="80" r="2"/><circle cx="310" cy="105" r="2.5"/>
-        <circle cx="30" cy="120" r="2"/><circle cx="65" cy="150" r="2"/>
-        <circle cx="100" cy="130" r="2.5"/><circle cx="145" cy="145" r="2"/>
-        <circle cx="175" cy="160" r="2"/><circle cx="215" cy="170" r="2.5"/>
-        <circle cx="255" cy="175" r="2"/><circle cx="290" cy="200" r="2"/>
-        <circle cx="320" cy="215" r="2"/><circle cx="45" cy="185" r="2"/>
-        <circle cx="80" cy="200" r="2.5"/><circle cx="120" cy="210" r="2"/>
-        <circle cx="165" cy="205" r="2"/><circle cx="200" cy="230" r="2"/>
-        <circle cx="240" cy="220" r="2.5"/><circle cx="270" cy="240" r="2"/>
-        <circle cx="310" cy="245" r="2"/><circle cx="25" cy="150" r="2"/>
-      </g>
-      <g fill="#5c120c">
-        <circle cx="50" cy="45" r="1.5"/><circle cx="85" cy="40" r="1.5"/>
-        <circle cx="120" cy="35" r="1.5"/><circle cx="165" cy="45" r="1.5"/>
-        <circle cx="205" cy="50" r="1.5"/><circle cx="245" cy="55" r="1.5"/>
-        <circle cx="285" cy="60" r="1.5"/><circle cx="325" cy="70" r="1.5"/>
-        <circle cx="40" cy="100" r="1.5"/><circle cx="80" cy="110" r="1.5"/>
-        <circle cx="125" cy="95" r="1.5"/><circle cx="170" cy="105" r="1.5"/>
-        <circle cx="210" cy="120" r="1.5"/><circle cx="260" cy="115" r="1.5"/>
-        <circle cx="300" cy="150" r="1.5"/><circle cx="335" cy="160" r="1.5"/>
-        <circle cx="55" cy="170" r="1.5"/><circle cx="110" cy="175" r="1.5"/>
-        <circle cx="155" cy="195" r="1.5"/><circle cx="195" cy="190" r="1.5"/>
-        <circle cx="235" cy="205" r="1.5"/><circle cx="280" cy="215" r="1.5"/>
-        <circle cx="20" cy="200" r="1.5"/><circle cx="65" cy="225" r="1.5"/>
-        <circle cx="105" cy="235" r="1.5"/><circle cx="150" cy="245" r="1.5"/>
-      </g>
-      <g fill="#3c0c08">
-        <circle cx="70" cy="15" r="1"/><circle cx="115" cy="20" r="1"/>
-        <circle cx="160" cy="10" r="1"/><circle cx="200" cy="15" r="1"/>
-        <circle cx="250" cy="20" r="1"/><circle cx="295" cy="15" r="1"/>
-        <circle cx="30" cy="65" r="1"/><circle cx="105" cy="75" r="1"/>
-        <circle cx="150" cy="85" r="1"/><circle cx="195" cy="95" r="1"/>
-        <circle cx="235" cy="100" r="1"/><circle cx="305" cy="120" r="1"/>
-        <circle cx="55" cy="140" r="1"/><circle cx="95" cy="155" r="1"/>
-        <circle cx="140" cy="165" r="1"/><circle cx="185" cy="175" r="1"/>
-        <circle cx="225" cy="185" r="1"/><circle cx="265" cy="195" r="1"/>
-        <circle cx="15" cy="110" r="1"/><circle cx="35" cy="160" r="1"/>
-        <circle cx="75" cy="185" r="1"/><circle cx="115" cy="195" r="1"/>
-        <circle cx="160" cy="215" r="1"/><circle cx="205" cy="220" r="1"/>
-        <circle cx="250" cy="230" r="1"/><circle cx="295" cy="235" r="1"/>
-        <circle cx="330" cy="240" r="1"/><circle cx="10" cy="180" r="1"/>
-      </g>
-    </svg>
-
-    <!-- Правый верхний (зеркальный) -->
-    <svg class="blood-splat tr" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
-      <use href="#bloodSplatContent"/>
     </svg>
 
     <div class="fire">
@@ -486,83 +1206,239 @@
     <canvas class="snow-canvas" id="snow"></canvas>
   </div>
 
-  <!-- Скрытый SVG с контентом для переиспользования -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <defs>
-      <g id="bloodSplatContent">
-        <path d="M0 0 H340 Q300 20 280 60 Q250 110 220 130 Q190 150 160 140 Q140 130 130 160 Q110 180 90 170 Q60 160 40 190 Q20 210 10 180 Q0 150 0 100 Z" fill="#7a1a10" opacity=".9"/>
-        <circle cx="230" cy="90" r="14" fill="#7a1a10"/>
-        <circle cx="150" cy="180" r="11" fill="#6a150d"/>
-        <circle cx="60" cy="210" r="9" fill="#5c120c"/>
-        <circle cx="280" cy="50" r="7" fill="#8f241a"/>
-        <circle cx="200" cy="40" r="6" fill="#7a1a10"/>
-        <circle cx="310" cy="130" r="5" fill="#6a150d"/>
-        <circle cx="100" cy="90" r="8" fill="#7a1a10"/>
-        <circle cx="40" cy="60" r="6" fill="#8f241a"/>
-        <g fill="#8f241a">
-          <circle cx="60" cy="30" r="2"/><circle cx="95" cy="25" r="2"/>
-          <circle cx="140" cy="30" r="2.5"/><circle cx="175" cy="20" r="2"/>
-          <circle cx="215" cy="25" r="2"/><circle cx="260" cy="30" r="2.5"/>
-          <circle cx="300" cy="20" r="2"/><circle cx="330" cy="40" r="2"/>
-          <circle cx="45" cy="80" r="2"/><circle cx="75" cy="70" r="2.5"/>
-          <circle cx="110" cy="50" r="2"/><circle cx="155" cy="60" r="2"/>
-          <circle cx="190" cy="75" r="2.5"/><circle cx="240" cy="65" r="2"/>
-          <circle cx="275" cy="80" r="2"/><circle cx="310" cy="105" r="2.5"/>
-          <circle cx="30" cy="120" r="2"/><circle cx="65" cy="150" r="2"/>
-          <circle cx="100" cy="130" r="2.5"/><circle cx="145" cy="145" r="2"/>
-          <circle cx="175" cy="160" r="2"/><circle cx="215" cy="170" r="2.5"/>
-          <circle cx="255" cy="175" r="2"/><circle cx="290" cy="200" r="2"/>
-          <circle cx="320" cy="215" r="2"/><circle cx="45" cy="185" r="2"/>
-          <circle cx="80" cy="200" r="2.5"/><circle cx="120" cy="210" r="2"/>
-          <circle cx="165" cy="205" r="2"/><circle cx="200" cy="230" r="2"/>
-          <circle cx="240" cy="220" r="2.5"/><circle cx="270" cy="240" r="2"/>
-          <circle cx="310" cy="245" r="2"/><circle cx="25" cy="150" r="2"/>
-        </g>
-        <g fill="#5c120c">
-          <circle cx="50" cy="45" r="1.5"/><circle cx="85" cy="40" r="1.5"/>
-          <circle cx="120" cy="35" r="1.5"/><circle cx="165" cy="45" r="1.5"/>
-          <circle cx="205" cy="50" r="1.5"/><circle cx="245" cy="55" r="1.5"/>
-          <circle cx="285" cy="60" r="1.5"/><circle cx="325" cy="70" r="1.5"/>
-          <circle cx="40" cy="100" r="1.5"/><circle cx="80" cy="110" r="1.5"/>
-          <circle cx="125" cy="95" r="1.5"/><circle cx="170" cy="105" r="1.5"/>
-          <circle cx="210" cy="120" r="1.5"/><circle cx="260" cy="115" r="1.5"/>
-          <circle cx="300" cy="150" r="1.5"/><circle cx="335" cy="160" r="1.5"/>
-          <circle cx="55" cy="170" r="1.5"/><circle cx="110" cy="175" r="1.5"/>
-          <circle cx="155" cy="195" r="1.5"/><circle cx="195" cy="190" r="1.5"/>
-          <circle cx="235" cy="205" r="1.5"/><circle cx="280" cy="215" r="1.5"/>
-          <circle cx="20" cy="200" r="1.5"/><circle cx="65" cy="225" r="1.5"/>
-          <circle cx="105" cy="235" r="1.5"/><circle cx="150" cy="245" r="1.5"/>
-        </g>
-        <g fill="#3c0c08">
-          <circle cx="70" cy="15" r="1"/><circle cx="115" cy="20" r="1"/>
-          <circle cx="160" cy="10" r="1"/><circle cx="200" cy="15" r="1"/>
-          <circle cx="250" cy="20" r="1"/><circle cx="295" cy="15" r="1"/>
-          <circle cx="30" cy="65" r="1"/><circle cx="105" cy="75" r="1"/>
-          <circle cx="150" cy="85" r="1"/><circle cx="195" cy="95" r="1"/>
-          <circle cx="235" cy="100" r="1"/><circle cx="305" cy="120" r="1"/>
-          <circle cx="55" cy="140" r="1"/><circle cx="95" cy="155" r="1"/>
-          <circle cx="140" cy="165" r="1"/><circle cx="185" cy="175" r="1"/>
-          <circle cx="225" cy="185" r="1"/><circle cx="265" cy="195" r="1"/>
-          <circle cx="15" cy="110" r="1"/><circle cx="35" cy="160" r="1"/>
-          <circle cx="75" cy="185" r="1"/><circle cx="115" cy="195" r="1"/>
-          <circle cx="160" cy="215" r="1"/><circle cx="205" cy="220" r="1"/>
-          <circle cx="250" cy="230" r="1"/><circle cx="295" cy="235" r="1"/>
-          <circle cx="330" cy="240" r="1"/><circle cx="10" cy="180" r="1"/>
-        </g>
-      </g>
-    </defs>
-  </svg>
-
 <script>
-  var details = Array.prototype.slice.call(document.querySelectorAll('.detail'));
+  // ===== ЗВУКОВОЙ ДВИЖОК (шумовой синтез) =====
+  var Sound = (function () {
+    var ctx = null;
+    var muted = localStorage.getItem('soundMuted') === 'true';
+    var noiseBuffer = null;
 
+    function initCtx() {
+      if (!ctx) {
+        try {
+          ctx = new (window.AudioContext || window.webkitAudioContext)();
+          var length = ctx.sampleRate * 2;
+          noiseBuffer = ctx.createBuffer(1, length, ctx.sampleRate);
+          var data = noiseBuffer.getChannelData(0);
+          for (var i = 0; i < length; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+        } catch (e) {
+          console.warn('Web Audio API не поддерживается');
+        }
+      }
+      return ctx;
+    }
+
+    function play(fn) {
+      if (muted) return;
+      var c = initCtx();
+      if (!c) return;
+      if (c.state === 'suspended') c.resume();
+      fn(c);
+    }
+
+    // Шумовой всплеск через фильтр
+    function noiseBurst(c, opts) {
+      var t = opts.time;
+      var src = c.createBufferSource();
+      src.buffer = noiseBuffer;
+      src.loop = true;
+
+      var filter = c.createBiquadFilter();
+      filter.type = opts.filterType || 'bandpass';
+      filter.frequency.value = opts.freq || 1000;
+      filter.Q.value = opts.q || 1;
+
+      var gain = c.createGain();
+      gain.gain.setValueAtTime(opts.gain || 0.1, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + opts.dur);
+
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(c.destination);
+
+      src.start(t);
+      src.stop(t + opts.dur + 0.02);
+    }
+
+    // Тональный удар (для низких частот)
+    function tone(c, opts) {
+      var t = opts.time;
+      var o = c.createOscillator();
+      var g = c.createGain();
+      o.type = opts.type || 'sine';
+      o.frequency.setValueAtTime(opts.freq, t);
+      if (opts.freqEnd) {
+        o.frequency.exponentialRampToValueAtTime(opts.freqEnd, t + opts.dur);
+      }
+      g.gain.setValueAtTime(opts.gain || 0.1, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + opts.dur);
+      o.connect(g);
+      g.connect(c.destination);
+      o.start(t);
+      o.stop(t + opts.dur + 0.02);
+    }
+
+    // ===== ЗАТВОР АКМ =====
+    function bolt() {
+      play(function (c) {
+        var t = c.currentTime;
+        noiseBurst(c, { time: t, filterType: 'bandpass', freq: 3500, q: 8, gain: 0.18, dur: 0.04 });
+        tone(c, { time: t, type: 'sine', freq: 120, freqEnd: 60, gain: 0.12, dur: 0.08 });
+        noiseBurst(c, { time: t + 0.06, filterType: 'bandpass', freq: 2800, q: 6, gain: 0.15, dur: 0.05 });
+        noiseBurst(c, { time: t + 0.1, filterType: 'highpass', freq: 4500, gain: 0.06, dur: 0.06 });
+      });
+    }
+
+    // ===== КЛИК ПО КНОПКЕ =====
+    function click() {
+      play(function (c) {
+        var t = c.currentTime;
+        noiseBurst(c, { time: t, filterType: 'highpass', freq: 2500, gain: 0.1, dur: 0.02 });
+        tone(c, { time: t, type: 'sine', freq: 180, freqEnd: 100, gain: 0.04, dur: 0.03 });
+      });
+    }
+
+    // ===== ПЕРЕДЁРГИВАНИЕ ЗАТВОРА =====
+    function rack() {
+      play(function (c) {
+        var t = c.currentTime;
+        noiseBurst(c, { time: t, filterType: 'bandpass', freq: 1200, q: 3, gain: 0.08, dur: 0.12 });
+        noiseBurst(c, { time: t + 0.12, filterType: 'bandpass', freq: 3200, q: 6, gain: 0.15, dur: 0.04 });
+        tone(c, { time: t + 0.12, type: 'sine', freq: 100, freqEnd: 60, gain: 0.1, dur: 0.06 });
+      });
+    }
+
+    // ===== ГЛУХОЙ УДАР ПРИКЛАДА =====
+    function thud() {
+      play(function (c) {
+        var t = c.currentTime;
+        noiseBurst(c, { time: t, filterType: 'lowpass', freq: 200, gain: 0.2, dur: 0.15 });
+        tone(c, { time: t, type: 'sine', freq: 80, freqEnd: 40, gain: 0.18, dur: 0.2 });
+      });
+    }
+
+    // ===== ЩЕЛЧОК ГЕЙГЕРА =====
+    function geiger() {
+      play(function (c) {
+        var t = c.currentTime;
+        noiseBurst(c, { time: t, filterType: 'highpass', freq: 4000, gain: 0.06, dur: 0.008 });
+      });
+    }
+
+    // ===== ЩЁЛК МАГАЗИНА =====
+    function mag() {
+      play(function (c) {
+        var t = c.currentTime;
+        noiseBurst(c, { time: t, filterType: 'bandpass', freq: 2200, q: 5, gain: 0.12, dur: 0.03 });
+        noiseBurst(c, { time: t + 0.04, filterType: 'bandpass', freq: 1400, q: 4, gain: 0.1, dur: 0.04 });
+      });
+    }
+
+    // ===== ОЧЕРЕДЬ АКМ =====
+    function burst() {
+      play(function (c) {
+        var t = c.currentTime;
+        for (var i = 0; i < 5; i++) {
+          var time = t + i * 0.1;
+          noiseBurst(c, { time: time, filterType: 'lowpass', freq: 250, gain: 0.25, dur: 0.08 });
+          tone(c, { time: time, type: 'sine', freq: 100, freqEnd: 40, gain: 0.2, dur: 0.1 });
+          noiseBurst(c, { time: time, filterType: 'highpass', freq: 3000, gain: 0.15, dur: 0.03 });
+          noiseBurst(c, { time: time + 0.03, filterType: 'bandpass', freq: 5000, q: 10, gain: 0.06, dur: 0.05 });
+          noiseBurst(c, { time: time + 0.06, filterType: 'bandpass', freq: 3000, q: 8, gain: 0.08, dur: 0.02 });
+        }
+      });
+    }
+
+    // ===== МЯГКИЙ ЩЁЛК =====
+    function soft() {
+      play(function (c) {
+        var t = c.currentTime;
+        noiseBurst(c, { time: t, filterType: 'bandpass', freq: 1800, q: 5, gain: 0.07, dur: 0.025 });
+      });
+    }
+
+    function setMuted(v) {
+      muted = v;
+      localStorage.setItem('soundMuted', v ? 'true' : 'false');
+      updateButton();
+    }
+
+    function toggleMuted() { setMuted(!muted); }
+    function isMuted() { return muted; }
+
+    function updateButton() {
+      var btn = document.getElementById('soundToggle');
+      if (!btn) return;
+      if (muted) {
+        btn.textContent = '🔇';
+        btn.classList.add('muted');
+      } else {
+        btn.textContent = '🔊';
+        btn.classList.remove('muted');
+      }
+    }
+
+    return {
+      click: click, bolt: bolt, rack: rack, thud: thud,
+      geiger: geiger, mag: mag, burst: burst, soft: soft,
+      setMuted: setMuted, toggleMuted: toggleMuted,
+      isMuted: isMuted, updateButton: updateButton
+    };
+  })();
+
+  // ===== ЛОАДЕР =====
+  (function () {
+    var loader = document.getElementById('loader');
+    var needle = document.getElementById('geigerNeedle');
+    var digits = document.getElementById('geigerDigits');
+    var status = document.getElementById('geigerStatus');
+
+    var messages = ['Инициализация...', 'Калибровка датчиков...', 'Замер фона...', 'Считаем патроны...', 'Прогреваем поезд...', 'Проверяем ствол...', 'Загружаем совесть...', 'Готово.'];
+
+    var progress = 0;
+    var lastGeiger = 0;
+    var tickInterval = setInterval(function () {
+      progress += Math.random() * 8 + 2;
+      if (progress > 100) progress = 100;
+
+      var angle = -45 + (progress / 100) * 90;
+      var noise = (Math.random() - 0.5) * 12;
+      needle.style.transform = 'translateX(-50%) rotate(' + (angle + noise) + 'deg)';
+
+      var value = (progress / 10).toFixed(1);
+      var parts = value.split('.');
+      var intPart = parts[0].padStart(3, '0');
+      var fracPart = parts[1];
+      digits.innerHTML = '<span>' + intPart[0] + '</span><span>' + intPart[1] + '</span><span>' + intPart[2] + '</span><span>.</span><span>' + fracPart + '</span>';
+
+      var msgIndex = Math.floor((progress / 100) * (messages.length - 1));
+      if (messages[msgIndex] && status.textContent !== messages[msgIndex]) {
+        status.textContent = messages[msgIndex];
+      }
+
+      var now = Date.now();
+      if (now - lastGeiger > 100 + Math.random() * 200) {
+        Sound.geiger();
+        lastGeiger = now;
+      }
+
+      if (progress >= 100) {
+        clearInterval(tickInterval);
+        setTimeout(function () { loader.classList.add('hidden'); }, 600);
+      }
+    }, 120);
+  })();
+
+  // ===== КАРТОЧКИ =====
+  var details = Array.prototype.slice.call(document.querySelectorAll('.detail'));
   function closeAll() {
     details.forEach(function (d) {
       d.classList.remove('visible');
       d.setAttribute('aria-hidden', 'true');
     });
   }
-
   function openPanel(id) {
     closeAll();
     var panel = document.getElementById(id);
@@ -570,75 +1446,401 @@
     panel.classList.add('visible');
     panel.setAttribute('aria-hidden', 'false');
   }
-
   document.querySelectorAll('.card').forEach(function (card) {
     card.addEventListener('click', function () {
+      Sound.rack();
       openPanel(card.getAttribute('data-d'));
     });
   });
-
   document.querySelectorAll('.detail .close').forEach(function (btn) {
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
+      Sound.soft();
       closeAll();
     });
   });
-
   document.querySelectorAll('.detail').forEach(function (panel) {
     panel.addEventListener('click', function (e) {
-      if (e.target === panel) closeAll();
+      if (e.target === panel) { Sound.soft(); closeAll(); }
     });
   });
 
-  // Снежинки
+  // ===== ТЕМА =====
+  (function () {
+    var toggle = document.getElementById('themeToggle');
+    var saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+      document.body.classList.add('light');
+      toggle.textContent = '☀️';
+    } else {
+      toggle.textContent = '🌙';
+    }
+    toggle.addEventListener('click', function () {
+      Sound.thud();
+      document.body.classList.toggle('light');
+      var isLight = document.body.classList.contains('light');
+      toggle.textContent = isLight ? '☀️' : '🌙';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+  })();
+
+  // ===== ЯЗЫК =====
+  (function () {
+    var btn = document.getElementById('langToggle');
+    var saved = localStorage.getItem('lang') || 'ru';
+    if (saved === 'en') document.body.classList.add('en');
+    btn.textContent = saved === 'en' ? 'EN' : 'RU';
+    btn.addEventListener('click', function () {
+      Sound.soft();
+      document.body.classList.toggle('en');
+      var isEn = document.body.classList.contains('en');
+      btn.textContent = isEn ? 'EN' : 'RU';
+      localStorage.setItem('lang', isEn ? 'en' : 'ru');
+    });
+  })();
+
+  // ===== ЗВУК ВКЛ/ВЫКЛ =====
+  (function () {
+    var btn = document.getElementById('soundToggle');
+    if (!btn) return;
+    Sound.updateButton();
+    btn.addEventListener('click', function () {
+      Sound.toggleMuted();
+      if (!Sound.isMuted()) Sound.click();
+    });
+  })();
+
+  // ===== МУЗЫКА =====
+  (function () {
+    var btn = document.getElementById('musicToggle');
+    btn.addEventListener('click', function () {
+      Sound.click();
+      alert('Музыка появится позже — файл ещё не загружен.');
+    });
+  })();
+
+  // ===== ПРОСМОТРЫ =====
+  (function () {
+    var el = document.getElementById('viewsCount');
+    if (!el) return;
+    var views = parseInt(localStorage.getItem('views') || '0', 10);
+    views++;
+    localStorage.setItem('views', views);
+    var display = 0;
+    var step = Math.max(1, Math.floor(views / 30));
+    function tick() {
+      display += step;
+      if (display >= views) { display = views; }
+      el.textContent = display.toLocaleString('ru-RU');
+      if (display < views) requestAnimationFrame(tick);
+    }
+    tick();
+  })();
+
+  // ===== ДНЕВНИК =====
+  (function () {
+    var quotes = [
+      'Одна пуля — один шанс. Не проеби.',
+      'Совесть — это роскошь. У меня её нет.',
+      'Кровь не вода. Кровь — это жизнь.',
+      'Топливо кончилось — поезд встал. А стоять — это смерть.',
+      'Я не убийца. Я просто делаю то, что нужно.',
+      'Байкал недалеко. Надо только дожить.',
+      'Снег заметает следы. Но не совесть.',
+      'Каждый выстрел — минус патрон в будущем.',
+      'Людоед тоже хотел жить. Но не судьба.',
+      'Тот, кто боится — бежит. Кто не боится — умирает.'
+    ];
+    var el = document.getElementById('quoteText');
+    if (el) el.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+  })();
+
+  // ===== МИНИ-ГЕЙГЕР =====
+  (function () {
+    var el = document.getElementById('geigerMini');
+    if (!el) return;
+    setInterval(function () {
+      var val = (0.08 + Math.random() * 0.15).toFixed(2);
+      el.textContent = val + ' mSv/h';
+      if (Math.random() < 0.3) Sound.geiger();
+    }, 1500);
+  })();
+
+  // ===== FAQ =====
+  (function () {
+    document.querySelectorAll('.faq-item').forEach(function (item) {
+      item.querySelector('.faq-q').addEventListener('click', function () {
+        Sound.mag();
+        item.classList.toggle('open');
+      });
+    });
+  })();
+
+  // ===== КАЛЬКУЛЯТОР =====
+  (function () {
+    var weapons = [
+      { name: 'ПП-19 «Витязь»', dmg: 30, ammo: '9×19' },
+      { name: 'MP5', dmg: 30, ammo: '9×19' },
+      { name: 'ППШ-41', dmg: 40, ammo: '7.62×25' },
+      { name: 'АКМ', dmg: 45, ammo: '7.62×39' },
+      { name: 'АК-74', dmg: 35, ammo: '5.45×39' },
+      { name: 'АКС-74У', dmg: 32, ammo: '5.45×39' },
+      { name: 'АК-102', dmg: 35, ammo: '5.56×45' },
+      { name: 'M4A1', dmg: 35, ammo: '5.56×45' },
+      { name: 'M16A2', dmg: 42, ammo: '5.56×45' },
+      { name: 'HK416', dmg: 48, ammo: '5.56×45' },
+      { name: 'FAL', dmg: 65, ammo: '7.62×51' },
+      { name: 'АК-308', dmg: 68, ammo: '7.62×51' },
+      { name: 'M110', dmg: 55, ammo: '7.62×51' },
+      { name: 'СВД', dmg: 75, ammo: '7.62×54R' },
+      { name: 'СВДМ', dmg: 78, ammo: '7.62×54R' },
+      { name: 'МК-14', dmg: 85, ammo: '7.62×51' },
+      { name: 'ВСС «Винторез»', dmg: 50, ammo: '9×39' },
+      { name: 'АС «Вал»', dmg: 50, ammo: '9×39' },
+      { name: 'ДВЛ-10', dmg: 78, ammo: '7.62×54R' },
+      { name: 'Мурка', dmg: 60, ammo: '12/70' },
+      { name: 'Сайга-12', dmg: 70, ammo: '12/70' }
+    ];
+    var armors = [
+      { name: 'Рваная куртка', bullet: 5, frag: 2, mut: 10, weight: 1 },
+      { name: 'Бронежилет 3-го класса', bullet: 40, frag: 20, mut: 30, weight: 5 },
+      { name: 'Бронежилет 4-го класса', bullet: 55, frag: 30, mut: 40, weight: 6 },
+      { name: 'Бронежилет 5-го класса', bullet: 70, frag: 40, mut: 50, weight: 10 },
+      { name: 'Экзоскелет (лёгкий)', bullet: 80, frag: 60, mut: 70, weight: 15 },
+      { name: 'Экзоскелет (тяжёлый)', bullet: 95, frag: 85, mut: 90, weight: 25 }
+    ];
+    var helmets = [
+      { name: 'Шапка-ушанка', bullet: 50, frag: 30, vision: 0, weight: 0.1 },
+      { name: 'Тактическая кепка', bullet: 0, frag: 0, vision: 0, weight: 0.2 },
+      { name: 'Каска СШ-40', bullet: 20, frag: 40, vision: -5, weight: 1.2 },
+      { name: 'Полицейский шлем', bullet: 30, frag: 30, vision: -10, weight: 1.5 },
+      { name: 'Каска 6Б47', bullet: 60, frag: 50, vision: -10, weight: 2.0 },
+      { name: 'Шлем «Алтын»', bullet: 90, frag: 70, vision: -30, weight: 3.5 },
+      { name: 'Экзо-шлем (лёгкий)', bullet: 70, frag: 60, vision: -15, weight: 2.5 },
+      { name: 'Экзо-шлем (тяжёлый)', bullet: 95, frag: 80, vision: -30, weight: 4.0 },
+      { name: 'Противогаз', bullet: 0, frag: 0, vision: -20, weight: 1.0 }
+    ];
+    var ammos = [
+      { name: 'FMJ (стандарт)', mod: 1.0 },
+      { name: 'AP (бронебойный)', mod: 1.3 },
+      { name: 'HP (экспансивный)', mod: 1.5 },
+      { name: 'Субзвуковой', mod: 0.9 },
+      { name: 'Дробь', mod: 0.7 }
+    ];
+
+    function fill(select, arr) {
+      arr.forEach(function (item, i) {
+        var opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = item.name;
+        select.appendChild(opt);
+      });
+    }
+
+    var wSel = document.getElementById('bWeapon');
+    var aSel = document.getElementById('bArmor');
+    var hSel = document.getElementById('bHelmet');
+    var amSel = document.getElementById('bAmmo');
+
+    fill(wSel, weapons);
+    fill(aSel, armors);
+    fill(hSel, helmets);
+    fill(amSel, ammos);
+
+    function update() {
+      var w = weapons[wSel.value];
+      var a = armors[aSel.value];
+      var h = helmets[hSel.value];
+      var am = ammos[amSel.value];
+
+      var dmg = Math.round(w.dmg * am.mod);
+      var totalBullet = Math.min(99, Math.round(a.bullet + (h.bullet * 0.5)));
+      var totalFrag = Math.min(99, Math.round(a.frag + (h.frag * 0.5)));
+      var totalMut = Math.min(99, Math.round(a.mut));
+      var totalWeight = (a.weight + h.weight + 3.5).toFixed(1);
+      var mobility = Math.max(20, 100 - a.weight * 2 - h.weight * 3);
+
+      document.getElementById('rDamage').textContent = dmg + ' (' + w.ammo + ')';
+      document.getElementById('rArmor').textContent = totalBullet + '%';
+      document.getElementById('rFrag').textContent = totalFrag + '%';
+      document.getElementById('rMut').textContent = totalMut + '%';
+      document.getElementById('rVision').textContent = h.vision + '%';
+      document.getElementById('rWeight').textContent = totalWeight + ' кг';
+      document.getElementById('rMobility').textContent = mobility + '%';
+    }
+
+    [wSel, aSel, hSel, amSel].forEach(function (sel) {
+      sel.addEventListener('change', function () { Sound.click(); update(); });
+    });
+    update();
+
+    var randomBtn = document.getElementById('randomBtn');
+    if (randomBtn) {
+      randomBtn.addEventListener('click', function () {
+        Sound.burst();
+        wSel.value = Math.floor(Math.random() * weapons.length);
+        aSel.value = Math.floor(Math.random() * armors.length);
+        hSel.value = Math.floor(Math.random() * helmets.length);
+        amSel.value = Math.floor(Math.random() * ammos.length);
+        update();
+      });
+    }
+  })();
+
+  // ===== КАРТА =====
+  (function () {
+    var locations = [
+      { name: 'Загородный дом', type: 'Жилой', diff: 1, loot: 2, who: '0–2 мародера с обрезами', note: 'Тихое место для старта. Можно найти еду, бинты и «Мурку».' },
+      { name: 'Деревня (3–5 домов)', type: 'Жилой', diff: 2, loot: 3, who: '3–5 мародеров с АКМ/ПП', note: 'Аптечка малая, ПП-19, патроны 7.62×39 FMJ. В гараже может быть глушитель.' },
+      { name: 'Лесная стоянка', type: 'Открытая', diff: 2, loot: 2, who: '2–4 мутанта-пса', note: 'Шкуры, антирадин, патроны 12/70. Хорошо для охоты и отдыха.' },
+      { name: 'Заброшенный склад', type: 'Индустриальный', diff: 3, loot: 4, who: '4–6 мародеров', note: 'Инструменты, стройматериалы, редкий лут.' },
+      { name: 'Блокпост', type: 'Военный', diff: 5, loot: 6, who: '6–10 зомбированных военных', note: 'Бронежилет 3-го класса, 5.45×39 AP, аптечка средняя.' },
+      { name: 'Железнодорожная станция', type: 'Транспортный', diff: 4, loot: 5, who: '3–5 мародеров + 1 пулемётчик', note: 'Топливо, запчасти, схема поезда, АКС-74У.' },
+      { name: 'Завод', type: 'Индустриальный', diff: 6, loot: 7, who: '5–8 рабочих-мутантов', note: '5.56×45 FMJ, MP5, металлолом, детали для крафта.' },
+      { name: 'Туннель метро', type: 'Подземный', diff: 7, loot: 6, who: '10+ мутантов + крысы', note: 'Патроны, еда, редкий артефакт, ППШ. Опасно, но можно срезать путь.' },
+      { name: 'Бункер', type: 'Подземный', diff: 8, loot: 8, who: '5–10 мутантов-бегунов', note: 'ВСС, Вал, 9×39 субзвук, броня 5-го класса. Темно и страшно.' },
+      { name: 'Военная база', type: 'Военный', diff: 9, loot: 9, who: '10–15 военных + 2 тяжелых мутанта', note: 'АК-308, M110, HK416, AP 7.62×51, экзоскелет. ОЧЕНЬ опасно.' },
+      { name: 'Секретная лаборатория', type: 'Подземный', diff: 10, loot: 10, who: '10–15 элитных врагов', note: 'МК-14, тепловизор, уникальные обвесы. Топовый лут, но и топовая сложность.' }
+    ];
+
+    function diffClass(d) {
+      if (d <= 2) return 'diff-low';
+      if (d <= 4) return 'diff-mid';
+      if (d <= 6) return 'diff-high';
+      if (d <= 8) return 'diff-deadly';
+      return 'diff-suicide';
+    }
+
+    var backdrop = document.getElementById('locModalBackdrop');
+    var modalTitle = document.getElementById('locModalTitle');
+    var modalSubtitle = document.getElementById('locModalSubtitle');
+    var modalDiff = document.getElementById('locModalDiff');
+    var modalLoot = document.getElementById('locModalLoot');
+    var modalEnemies = document.getElementById('locModalEnemies');
+    var modalNote = document.getElementById('locModalNote');
+    var modalClose = document.getElementById('locModalClose');
+
+    function openLoc(loc) {
+      modalTitle.textContent = '📍 ' + loc.name;
+      modalSubtitle.textContent = 'Тип: ' + loc.type;
+      modalDiff.textContent = loc.diff + '/10';
+      modalDiff.className = 'loc-stat-value ' + diffClass(loc.diff);
+      modalLoot.textContent = loc.loot + '/10';
+      modalEnemies.textContent = loc.who;
+      modalNote.textContent = loc.note;
+      backdrop.classList.add('visible');
+    }
+
+    function closeLoc() { backdrop.classList.remove('visible'); }
+
+    if (modalClose) {
+      modalClose.addEventListener('click', function () { Sound.soft(); closeLoc(); });
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) { Sound.soft(); closeLoc(); }
+      });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && backdrop.classList.contains('visible')) {
+        Sound.soft(); closeLoc();
+      }
+    });
+
+    var grid = document.getElementById('mapGrid');
+    locations.forEach(function (loc) {
+      var cell = document.createElement('div');
+      cell.className = 'map-cell';
+      cell.innerHTML =
+        '<div class="name">' + loc.name + '</div>' +
+        '<div class="type">' + loc.type + ' • Лут: ' + loc.loot + '/10</div>' +
+        '<span class="diff diff-' + loc.diff + '">Сложность: ' + loc.diff + '/10</span>';
+      cell.addEventListener('click', function () { Sound.mag(); openLoc(loc); });
+      grid.appendChild(cell);
+    });
+  })();
+
+  // ===== НАВИГАЦИЯ =====
+  (function () {
+    var navToggle = document.getElementById('navToggle');
+    var navMenu = document.getElementById('navMenu');
+    var mobileNav = document.getElementById('mobileNav');
+    var mobileNavClose = document.getElementById('mobileNavClose');
+
+    if (navToggle) {
+      navToggle.addEventListener('click', function () {
+        Sound.click();
+        var isMobile = window.innerWidth <= 700;
+        if (isMobile) {
+          mobileNav.classList.toggle('visible');
+          navToggle.classList.toggle('open');
+        } else {
+          navMenu.classList.toggle('visible');
+          navToggle.classList.toggle('open');
+        }
+      });
+    }
+
+    if (mobileNavClose) {
+      mobileNavClose.addEventListener('click', function () {
+        Sound.soft();
+        mobileNav.classList.remove('visible');
+        navToggle.classList.remove('open');
+      });
+    }
+
+    document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(function (link) {
+      link.addEventListener('click', function () {
+        Sound.soft();
+        navMenu.classList.remove('visible');
+        mobileNav.classList.remove('visible');
+        navToggle.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (navMenu.classList.contains('visible') &&
+          !navMenu.contains(e.target) &&
+          !navToggle.contains(e.target)) {
+        navMenu.classList.remove('visible');
+        navToggle.classList.remove('open');
+      }
+    });
+  })();
+
+  // ===== СНЕЖИНКИ =====
   (function () {
     var canvas = document.getElementById('snow');
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     var W, H, parts = [], count;
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-    }
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
     resize();
     window.addEventListener('resize', resize);
-
     count = Math.floor(window.innerWidth / 6);
     if (count > 90) count = 90;
-
     for (var i = 0; i < count; i++) {
-      parts.push({
-        x: Math.random() * W,
-        y: Math.random() * -H,
-        r: 0.8 + Math.random() * 1.8,
-        s: 0.4 + Math.random() * 0.9,
-        o: 0.35 + Math.random() * 0.5,
-        w: (Math.random() - 0.5) * 0.6
-      });
+      parts.push({ x: Math.random() * W, y: Math.random() * -H, r: 0.8 + Math.random() * 1.8,
+        s: 0.4 + Math.random() * 0.9, o: 0.35 + Math.random() * 0.5, w: (Math.random() - 0.5) * 0.6 });
     }
-
     function step() {
       ctx.clearRect(0, 0, W, H);
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
-        p.y += p.s;
-        p.x += p.w;
+        p.y += p.s; p.x += p.w;
         if (p.y > H) { p.y = -6; p.x = Math.random() * W; }
         if (p.x > W + 6) p.x = -6;
         if (p.x < -6) p.x = W + 6;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(230,240,250,' + p.o + ')';
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(230,240,250,' + p.o + ')'; ctx.fill();
       }
       requestAnimationFrame(step);
     }
     if (!reduced) step();
   })();
 
-  // Огонь
+  // ===== ОГОНЬ =====
   (function () {
     var canvas = document.getElementById('fire');
     if (!canvas) return;
@@ -647,59 +1849,41 @@
     var W, H, parts = [];
     var colors = ['255,130,30', '255,90,20', '255,60,10', '255,160,60', '200,40,10'];
     var gray = [110,118,128];
-
     function resize() {
       var r = canvas.getBoundingClientRect();
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = r.width;
-      H = r.height;
-      canvas.width = Math.floor(r.width * dpr);
-      canvas.height = Math.floor(r.height * dpr);
+      W = r.width; H = r.height;
+      canvas.width = Math.floor(r.width * dpr); canvas.height = Math.floor(r.height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    resize();
-    window.addEventListener('resize', resize);
-
+    resize(); window.addEventListener('resize', resize);
     function spawnFlame(x) {
-      parts.push({
-        x: x, y: H, vy: -(2.5 + Math.random() * 2.5),
-        vx: (Math.random() - 0.5) * 1.0,
-        life: 1, r: 8 + Math.random() * 10,
-        c: colors[(Math.random() * colors.length) | 0],
-        sm: false, spd: 0.02 + Math.random() * 0.02
-      });
+      parts.push({ x: x, y: H, vy: -(2.5 + Math.random() * 2.5), vx: (Math.random() - 0.5) * 1.0,
+        life: 1, r: 8 + Math.random() * 10, c: colors[(Math.random() * colors.length) | 0],
+        sm: false, spd: 0.02 + Math.random() * 0.02 });
     }
     function spawnSmoke(x) {
-      parts.push({
-        x: x, y: H, vy: -(0.7 + Math.random() * 0.5),
-        vx: (Math.random() - 0.5) * 0.4,
-        life: 1, r: 14 + Math.random() * 14,
-        c: null, sm: true, spd: 0.007 + Math.random() * 0.007
-      });
+      parts.push({ x: x, y: H, vy: -(0.7 + Math.random() * 0.5), vx: (Math.random() - 0.5) * 0.4,
+        life: 1, r: 14 + Math.random() * 14, c: null, sm: true, spd: 0.007 + Math.random() * 0.007 });
     }
-
     function step() {
       ctx.clearRect(0, 0, W, H);
-
       if (parts.length < 220) {
         var n = 2 + (Math.random() * 2 | 0);
         for (var i = 0; i < n; i++) spawnFlame(Math.random() * W);
         if (Math.random() < 0.3) spawnSmoke(Math.random() * W);
       }
-
       for (var j = parts.length - 1; j >= 0; j--) {
         var p = parts[j];
         if (p.sm) { p.vy -= 0.01; } else { p.vy += 0.06; }
         p.x += p.vx + (p.sm ? Math.sin(p.life * 40) * 0.25 : 0);
-        p.y += p.vy;
-        p.life -= p.spd;
+        p.y += p.vy; p.life -= p.spd;
         if (p.life <= 0 || p.y < -50 || p.y > H + 20 || p.x < -80 || p.x > W + 80) {
           parts.splice(j, 1); continue;
         }
         var a = Math.max(0, Math.min(1, p.life));
         if (p.sm) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r * (1.3 - a * 0.3), 0, Math.PI * 2);
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1.3 - a * 0.3), 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(' + gray[0] + ',' + gray[1] + ',' + gray[2] + ',' + (a * 0.18) + ')';
           ctx.fill();
         } else {
@@ -709,9 +1893,7 @@
           grad.addColorStop(0.35, 'rgba(' + p.c + ',' + (a * 0.7) + ')');
           grad.addColorStop(1, 'rgba(' + p.c + ',0)');
           ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, Math.PI * 2); ctx.fill();
         }
       }
       requestAnimationFrame(step);
