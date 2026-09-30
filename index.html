@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="«Пепел и лёд» — постапокалиптическая игра о выживании в ядерную зиму. Механики выживания, оружие, мораль и выбор.">
+<title>Пепел и лёд — постапокалипсис о выживании</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #151c25;
+    --ink: #e9eef3;
+    --muted: #9aa8b6;
+    --ice: #6fa8c9;
+    --ice-soft: #1b2733;
+    --blood: #c0392b;
+    --line: #26313d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0 !important; padding: 0 !important; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+  main { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 3rem; }
+
+  header { text-align: center; padding: 10rem 0 1rem; margin: 0; }
+  header .kicker { margin-top: 0 !important; }
+  .kicker { color: var(--blood); font-size: .8rem; letter-spacing: .25em;
+            text-transform: uppercase; margin: 0 0 .6rem; }
+  h1 { font-size: 3rem; line-height: 1.05; margin: 0 0 .5rem;
+       font-weight: 800; letter-spacing: .02em; }
+  .tagline { color: var(--muted); font-size: 1.1rem; max-width: 46ch;
+             margin: 0 auto; }
+  .cta { margin-top: 1.8rem; display: flex; gap: .8rem; justify-content: center;
+         flex-wrap: wrap; }
+  .btn { display: inline-block; padding: .7rem 1.5rem; border-radius: 8px;
+         font-weight: 700; text-decoration: none; font-size: 1rem; }
+  .btn-primary { background: var(--ice); color: #0a0e12; }
+  .btn-ghost { border: 1px solid var(--line); color: var(--ink); }
+
+  section { margin: 3rem 0; padding-top: 1rem; scroll-margin-top: 1rem; }
+  h2 { font-size: 1.35rem; margin: 0 0 .6rem; color: var(--ink);
+       border-bottom: 1px solid var(--line); padding-bottom: .5rem; }
+  .lead { color: var(--muted); max-width: 70ch; }
+  p { margin: .6rem 0; max-width: 72ch; }
+
+  .pitch {
+    background: linear-gradient(160deg, var(--ice-soft), var(--bg-soft));
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 1.6rem 1.8rem; margin-top: 2rem;
+  }
+  .pitch p { margin: 0; }
+
+  /* КУБИКИ */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+              gap: .9rem; margin-top: 1.2rem; position: relative; }
+  .card { border: 1px solid var(--line); border-radius: 10px;
+          background: var(--bg-soft); cursor: pointer;
+          transition: border-color .2s, background .2s;
+          -webkit-tap-highlight-color: transparent; }
+  .card:hover { border-color: var(--ice); }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start;
+               gap: .6rem; padding: 1rem 1.1rem; min-height: 6.2rem; }
+  .card-head b { color: var(--ice); font-size: 1.02rem; display: block;
+                 line-height: 1.35; }
+  .card-head span { color: var(--muted); font-size: .92rem; display: block;
+                    margin-top: .3rem; }
+  .tog { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border: 1px solid var(--line);
+         border-radius: 50%; color: var(--ice); display: flex; align-items: center;
+         justify-content: center; font-size: 1.1rem; line-height: 1;
+         user-select: none; }
+  .detail { position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+            background: var(--bg); border: 1px solid var(--ice); border-radius: 12px;
+            box-shadow: 0 18px 40px rgba(0,0,0,.55); padding: 1.2rem 1.3rem 1.4rem;
+            opacity: 0; visibility: hidden; transform: translateY(6px);
+            transition: opacity .25s ease, transform .3s ease, visibility .25s; }
+  .detail.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+  .detail-head { display: flex; justify-content: space-between; align-items: flex-start;
+                 gap: .8rem; margin-bottom: .6rem; }
+  .detail-head b { color: var(--ice); font-size: 1.15rem; line-height: 1.3; }
+  .close { flex: 0 0 auto; width: 1.7rem; height: 1.7rem; border: 1px solid var(--line);
+           border-radius: 50%; color: var(--muted); background: none; font-size: 1.2rem;
+           line-height: 1; cursor: pointer; }
+  .close:hover { border-color: var(--ice); color: var(--ice); }
+  .detail p { margin: 0; color: var(--muted); }
+
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+           gap: .9rem; margin-top: 1.2rem; }
+  .shot { aspect-ratio: 16 / 9; border: 1px dashed var(--line); border-radius: 10px;
+          background: var(--bg-soft); display: flex; align-items: center;
+          justify-content: center; color: var(--muted); font-size: .9rem;
+          font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+
+  .subhead { color: var(--ice); font-weight: 700; font-size: 1rem;
+             margin: 1.6rem 0 .5rem; }
+  .twrap { overflow-x: auto; margin-top: .8rem; border: 1px solid var(--line);
+           border-radius: 8px; }
+  .data { border-collapse: collapse; width: 100%; font-size: .86rem;
+          min-width: 460px; }
+  .data th, .data td { padding: .5rem .65rem; border-bottom: 1px solid var(--line);
+                       text-align: left; vertical-align: top; }
+  .data tr:last-child td { border-bottom: none; }
+  .data th { color: var(--muted); font-weight: 600; white-space: nowrap;
+             background: var(--bg-soft); }
+  .data td { white-space: nowrap; }
+
+  .donate { text-align: center; padding: 2.2rem 1rem; border: 1px solid var(--line);
+            border-radius: 12px; background: var(--bg-soft); }
+  .donate h2 { border: none; padding: 0; color: var(--ink); }
+  .donate p { margin: .4rem auto 1.2rem; color: var(--muted); max-width: 48ch; }
+  .donate .p-places { color: var(--muted); font-size: .85rem; }
+
+  footer { color: var(--muted); font-size: .82rem; border-top: 1px solid var(--line);
+           margin-top: 3rem; padding-top: 1rem; text-align: center; }
+
+  /* Фоновые эффекты */
+  .fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+
+  /* Кровавые сплэттеры в верхних углах */
+  .blood-splat {
+    position: absolute;
+    top: 0;
+    width: 340px;
+    height: auto;
+    pointer-events: none;
+    opacity: .85;
+    /* Красный цвет поверх чёрного фона — просто фильтр */
+    filter: brightness(1) saturate(1.4) contrast(1.1);
+  }
+  .blood-splat.tl { left: 0; }
+  .blood-splat.tr { right: 0; transform: scaleX(-1); }
+
+  .fire { position: absolute; left: 0; right: 0; bottom: 0; height: 140px; z-index: 4;
+          pointer-events: none; opacity: .8; }
+  .fire canvas { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; }
+  .fire .glow { position: absolute; left: 0; right: 0; bottom: 0; height: 80px;
+                background: linear-gradient(to top, rgba(255,110,30,.30), rgba(255,90,20,0));
+                animation: glow 2.5s ease-in-out infinite; }
+
+  @keyframes glow {
+    0%, 100% { opacity: .6; } 50% { opacity: 1; }
+  }
+
+  .snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                 z-index: 3; pointer-events: none; }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 2.2rem; }
+    header { padding-top: 6rem; }
+    .blood-splat { width: 220px; }
+  }
+  @media print {
+    body { background: #fff; color: #000; }
+    .donate, .cta, .fx-layer { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <main>
+  <header>
+    <p class="kicker">Игра в разработке</p>
+    <h1>Пепел&nbsp;и&nbsp;лёд</h1>
+    <p class="tagline">Постапокалипсис в ядерную зиму. Одна пуля решает всё. Механики выживания, мораль и право выбирать свою судьбу.</p>
+    <div class="cta">
+      <a class="btn btn-ghost" href="#mechanics">Узнать больше</a>
+    </div>
+  </header>
+
+  <section id="svoz">
+    <p class="kicker">Что за игра</p>
+    <h2>Выживание в ядерную зиму</h2>
+    <p class="lead">Мир сгорел в обмене ядерными ударами, и теперь выживание — это ежедневный выбор. Сюжет в разработке и будет доработан так, чтобы подать знакомые темы по-новому.</p>
+    <div class="pitch">
+      <p>Центр игры — выживание и мораль. Чем больше приходится жертвовать, тем сложнее остаться собой. Финальный выбор решает, чем закончится путь.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ключевые механики</h2>
+    <div class="features">
+      <div class="card" data-d="d1">
+        <div class="card-head"><div><b>Совесть — не шкала «добра и зла»</b><span>Это обезличивание. Чем ниже — тем холоднее прицел.</span></div><span class="tog">+</span></div>
+      </div>
+      <div class="card" data-d="d2">
+        <div class="card-head"><div><b>Кровь и аптечки — не одно и то же</b><span>Здоровье можно залечить, кровопотерю — нет.</span></div><span class="tog">+</span></div>
+      </div>
+      <div class="card" data-d="d3">
+        <div class="card-head"><div><b>Транспорт — это база</b><span>Верстак, припасы, укрепления. Каждая точка пути — риск и награда.</span></div><span class="tog">+</span></div>
+      </div>
+      <div class="card" data-d="d4">
+        <div class="card-head"><div><b>Ресурсы под контролем</b><span>Топливо и припасы — главный лимит в пути.</span></div><span class="tog">+</span></div>
+      </div>
+      <div class="card" data-d="d5">
+        <div class="card-head"><div><b>Два режима</b><span>Сюжет с ветвлениями и песочница с «волшебным столом».</span></div><span class="tog">+</span></div>
+      </div>
+      <div class="card" data-d="d6">
+        <div class="card-head"><div><b>Выбор определяет финал</b><span>Твой путь и решения решают, чем всё закончится.</span></div><span class="tog">+</span></div>
+      </div>
+
+      <div class="detail" id="d1" role="dialog" aria-hidden="true">
+        <div class="detail-head"><b>Совесть — не шкала «добра и зла»</b><button class="close" aria-label="Закрыть">×</button></div>
+        <p>Совесть в «Пепле и льде» — это не банальный счётчик «хороший/плохой». Это обезличивание. Чем больше ГГ убивает, чем чаще он проходит мимо чужой беды, тем ниже падает этот параметр. Но самое страшное начинается ближе к финалу: шкала начинает падать сама, независимо от действий игрока. При низкой совести ГГ становится холодным, молчаливым и безжалостным. Союзники начинают его бояться, диалоги становятся короче, а прицел — ровнее. При нулевой совести ГГ перестаёт говорить. Он просто делает то, что нужно. И это пугает даже его самого.</p>
+      </div>
+      <div class="detail" id="d2" role="dialog" aria-hidden="true">
+        <div class="detail-head"><b>Кровь и аптечки — не одно и то же</b><button class="close" aria-label="Закрыть">×</button></div>
+        <p>В «Пепле и льде» здоровье (ХП) и объём крови — это два разных ресурса. Аптечка залечивает раны, но не восполняет кровопотерю. Если ты быстро забинтовался (в течение ~12 секунд после ранения) — кровь восстанавливается сама. Но если ты бегаешь с открытым кровотечением минутами — шкала крови падает. Экран темнеет по краям, ГГ шатается, и даже полное ХП не спасёт: при нулевой крови он умрёт. Пакеты крови — редкий ресурс, который восполняет объём. Их надо беречь, как патроны в Метро.</p>
+      </div>
+      <div class="detail" id="d3" role="dialog" aria-hidden="true">
+        <div class="detail-head"><b>Транспорт — это база</b><button class="close" aria-label="Закрыть">×</button></div>
+        <p>Поезд в «Пепле и льде» — не просто средство передвижения. Это мобильная база. Внутри можно оборудовать верстак, койки, укрепления. Здесь ты крафтишь патроны, чинишь оружие, лечишься и планируешь следующий маршрут. Каждая станция на пути — это риск и награда: топливо, припасы, выжившие, враги. Топливо — главный лимит. Кончилось топливо — поезд встал. А стоять в открытом поле — это смерть.</p>
+      </div>
+      <div class="detail" id="d4" role="dialog" aria-hidden="true">
+        <div class="detail-head"><b>Ресурсы под контролем</b><button class="close" aria-label="Закрыть">×</button></div>
+        <p>Топливо, патроны, еда, медикаменты — всё это ограничено. Ты не можешь просто бегать и стрелять: каждый выстрел — это минус патрон, который ты не найдёшь в следующей локации. Приходится выбирать: взять бой или обойти стороной, потратить аптечку или дойти до базы. Экономика в игре жёсткая, но честная: если ты просчитался — это твоя вина, а не «плохой баланс».</p>
+      </div>
+      <div class="detail" id="d5" role="dialog" aria-hidden="true">
+        <div class="detail-head"><b>Два режима</b><button class="close" aria-label="Закрыть">×</button></div>
+        <p>В игре будет два режима. Сюжет — линейная история с ветвлениями, финалами и моральными выборами. Здесь ты проходишь путь ГГ от пробуждения в подвале людоеда до финала на Байкале. Песочница — отдельный режим для тестов и фана. У тебя есть база с неограниченными ресурсами, все пушки, вся броня, все обвесы. «Волшебный стол» позволяет спавнить врагов, телепортироваться, удалять трупы и включать читы (бессмертие, бесконечные патроны, бесконечная стамина). Песочница не влияет на сюжет — это отдельная вселенная.</p>
+      </div>
+      <div class="detail" id="d6" role="dialog" aria-hidden="true">
+        <div class="detail-head"><b>Выбор определяет финал</b><button class="close" aria-label="Закрыть">×</button></div>
+        <p>Финал «Пепла и льда» зависит от двух вещей. Совесть — если она низкая, ты станешь холодной машиной для убийств, и команда отвернётся от тебя. Команда — если ты спасал выживших, они ответят тебе тем же. Если ты был одиночкой — умрёшь один. В финале ГГ жертвует собой ради команды, и если команда достаточно большая — они делают ему переливание крови и спасают. Если нет — он умирает на берегу Байкала, глядя в чистое небо. А есть и третий путь — предательство. Но о нём ты узнаешь только в сиквеле.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Скриншоты</h2>
+    <p class="lead">Место под кадры из игры и геймплейные тизеры. Появятся, как только соберём первый билд.</p>
+    <div class="shots">
+      <div class="shot">кадр_01.png<br>(заглушка)</div>
+      <div class="shot">кадр_02.png<br>(заглушка)</div>
+      <div class="shot">кадр_03.png<br>(заглушка)</div>
+    </div>
+  </section>
+
+  <section id="donate" class="donate">
+    <h2>Поддержать проект</h2>
+    <p>Игра делается на голом энтузиазме и свободном времени. Любая поддержка — топливо для этого проекта.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#">Поддержать проект (ссылка скоро)</a>
+    </div>
+    <p class="p-places">Здесь появятся ссылки на данаты, Discord и соцсети, когда соберём первые билды. Сейчас — заглушка.</p>
+  </section>
+
+  <section id="mechanics">
+    <h2>Механики</h2>
+    <p class="lead">Базовый состав оружия, брони и предметов в игре. Конкретные значения и редкость будут донастраиваться по ходу разработки.</p>
+
+    <div class="subhead">Оружие</div>
+    <div class="twrap">
+      <table class="data">
+        <thead><tr><th>Название</th><th>Класс</th><th>Калибр</th><th>Редкость</th><th>Урон</th><th>Модификации</th></tr></thead>
+        <tbody>
+          <tr><td>ПП-19 «Витязь»</td><td>ПП</td><td>9×19</td><td>Часто</td><td>Средний</td><td>Широкие</td></tr>
+          <tr><td>MP5</td><td>ПП</td><td>9×19</td><td>Часто</td><td>Средний</td><td>Широкие</td></tr>
+          <tr><td>ППШ-41</td><td>ПП</td><td>7.62×25</td><td>Редко</td><td>Высокий</td><td>Низкие</td></tr>
+          <tr><td>АКМ</td><td>Автомат</td><td>7.62×39</td><td>Часто</td><td>Высокий</td><td>Хорошие</td></tr>
+          <tr><td>АК-74</td><td>Автомат</td><td>5.45×39</td><td>Очень часто</td><td>Средний</td><td>Хорошие</td></tr>
+          <tr><td>АКС-74У</td><td>Автомат</td><td>5.45×39</td><td>Редко</td><td>Средний</td><td>Средние</td></tr>
+          <tr><td>АК-102</td><td>Автомат</td><td>5.56×45</td><td>Нечасто</td><td>Средний</td><td>Хорошие</td></tr>
+          <tr><td>M4A1</td><td>Автомат</td><td>5.56×45</td><td>Часто</td><td>Средний</td><td>Максимальные</td></tr>
+          <tr><td>M16A2</td><td>Автомат</td><td>5.56×45</td><td>Редко</td><td>Высокий</td><td>Средние</td></tr>
+          <tr><td>HK416</td><td>Автомат</td><td>5.56×45</td><td>Очень редко</td><td>Высокий</td><td>Максимальные</td></tr>
+          <tr><td>FAL</td><td>Автомат</td><td>7.62×51</td><td>Очень редко</td><td>Очень высокий</td><td>Хорошие</td></tr>
+          <tr><td>АК-308</td><td>Автомат</td><td>7.62×51</td><td>Редко</td><td>Очень высокий</td><td>Низкие</td></tr>
+          <tr><td>M110</td><td>Марксманка</td><td>7.62×51</td><td>Средняя</td><td>Высокий</td><td>Широкие</td></tr>
+          <tr><td>СВД</td><td>Марксманка</td><td>7.62×54R</td><td>Средняя</td><td>Очень высокий</td><td>Средние</td></tr>
+          <tr><td>СВДМ</td><td>Марксманка</td><td>7.62×54R</td><td>Редко</td><td>Очень высокий</td><td>Хорошие</td></tr>
+          <tr><td>МК-14</td><td>Марксманка</td><td>7.62×51</td><td>Очень редко</td><td>Максимальный</td><td>Максимальные</td></tr>
+          <tr><td>ВСС «Винторез»</td><td>Стелс</td><td>9×39</td><td>Очень редко</td><td>Высокий</td><td>Средние</td></tr>
+          <tr><td>АС «Вал»</td><td>Стелс</td><td>9×39</td><td>Очень редко</td><td>Высокий</td><td>Средние</td></tr>
+          <tr><td>ДВЛ-10</td><td>Стелс</td><td>7.62×54R</td><td>Редко</td><td>Очень высокий</td><td>Хорошие</td></tr>
+          <tr><td>Мурка (одностволка)</td><td>Дробовик</td><td>12/70</td><td>Стартовое</td><td>Зашибись (вблизи)</td><td>Нет</td></tr>
+          <tr><td>Сайга-12</td><td>Дробовик</td><td>12/70</td><td>Часто</td><td>Очень высокий</td><td>Низкие</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subhead">Броня</div>
+    <div class="twrap">
+      <table class="data">
+        <thead><tr><th>Название</th><th>Класс</th><th>Против пуль</th><th>Против осколков</th><th>Против мутантов</th><th>Редкость</th></tr></thead>
+        <tbody>
+          <tr><td>Рваная куртка</td><td>Лёгкая</td><td>5%</td><td>2%</td><td>10%</td><td>Очень часто</td></tr>
+          <tr><td>Бронежилет 3-го класса</td><td>Средняя</td><td>40%</td><td>20%</td><td>30%</td><td>Часто</td></tr>
+          <tr><td>Бронежилет 4-го класса</td><td>Средняя</td><td>55%</td><td>30%</td><td>40%</td><td>Часто</td></tr>
+          <tr><td>Бронежилет 5-го класса</td><td>Тяжёлая</td><td>70%</td><td>40%</td><td>50%</td><td>Редко</td></tr>
+          <tr><td>Экзоскелет (лёгкий)</td><td>Тяжёлая</td><td>80%</td><td>60%</td><td>70%</td><td>Очень редко</td></tr>
+          <tr><td>Экзоскелет (тяжёлый)</td><td>Супер-тяжёлая</td><td>95%</td><td>85%</td><td>90%</td><td>Единичный</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subhead">Шлемы</div>
+    <div class="twrap">
+      <table class="data">
+        <thead><tr><th>Название</th><th>Вес</th><th>Защита (пули/осколки)</th><th>Обзор</th><th>Приборы</th><th>Редкость</th></tr></thead>
+        <tbody>
+          <tr><td>Шапка-ушанка</td><td>0.1 кг</td><td>50% / 30% (рикошет)</td><td>0%</td><td>Нет</td><td>Очень часто</td></tr>
+          <tr><td>Тактическая кепка</td><td>0.2 кг</td><td>0% / 0%</td><td>0%</td><td>Нет</td><td>Очень часто</td></tr>
+          <tr><td>Каска СШ-40</td><td>1.2 кг</td><td>20% / 40%</td><td>-5%</td><td>Нет</td><td>Часто</td></tr>
+          <tr><td>Полицейский шлем</td><td>1.5 кг</td><td>30% / 30%</td><td>-10%</td><td>Нет</td><td>Часто</td></tr>
+          <tr><td>Каска 6Б47</td><td>2.0 кг</td><td>60% / 50%</td><td>-10%</td><td>Есть планки</td><td>Редко</td></tr>
+          <tr><td>Шлем «Алтын»</td><td>3.5 кг</td><td>90% / 70%</td><td>-30%</td><td>Есть крепления</td><td>Очень редко</td></tr>
+          <tr><td>Экзо-шлем (лёгкий)</td><td>2.5 кг</td><td>70% / 60%</td><td>-15%</td><td>Есть</td><td>Очень редко</td></tr>
+          <tr><td>Экзо-шлем (тяжёлый)</td><td>4.0 кг</td><td>95% / 80%</td><td>-30%</td><td>Есть</td><td>Уникальный</td></tr>
+          <tr><td>Противогаз</td><td>1.0 кг</td><td>0% / 0%</td><td>-20%</td><td>Нет</td><td>Редко</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subhead">Патроны</div>
+    <div class="twrap">
+      <table class="data">
+        <thead><tr><th>Название</th><th>Калибр</th><th>Оружие</th><th>Урон</th><th>Пробитие</th><th>Редкость</th></tr></thead>
+        <tbody>
+          <tr><td>FMJ</td><td>9×19</td><td>ПП-19, MP5</td><td>Средний</td><td>Среднее</td><td>Очень часто</td></tr>
+          <tr><td>AP</td><td>9×19</td><td>ПП-19, MP5</td><td>Высокий</td><td>Высокое</td><td>Редко</td></tr>
+          <tr><td>HP</td><td>9×19</td><td>ПП-19, MP5</td><td>Очень высокий</td><td>Низкое</td><td>Редко</td></tr>
+          <tr><td>FMJ</td><td>7.62×25</td><td>ППШ-41</td><td>Средний</td><td>Среднее</td><td>Редко</td></tr>
+          <tr><td>AP</td><td>7.62×25</td><td>ППШ-41</td><td>Высокий</td><td>Высокое</td><td>Редко</td></tr>
+          <tr><td>FMJ</td><td>5.45×39</td><td>АК-74, АКС-74У, РПК</td><td>Средний</td><td>Среднее</td><td>Очень часто</td></tr>
+          <tr><td>AP</td><td>5.45×39</td><td>АК-74, АКС-74У, РПК</td><td>Высокий</td><td>Высокое</td><td>Редко</td></tr>
+          <tr><td>FMJ</td><td>7.62×39</td><td>АКМ, РПК (старый)</td><td>Высокий</td><td>Среднее</td><td>Часто</td></tr>
+          <tr><td>AP</td><td>7.62×39</td><td>АКМ</td><td>Очень высокий</td><td>Высокое</td><td>Редко</td></tr>
+          <tr><td>FMJ</td><td>5.56×45</td><td>M4A1, M16A2, HK416, АК-102</td><td>Средний</td><td>Среднее</td><td>Часто</td></tr>
+          <tr><td>AP</td><td>5.56×45</td><td>M4A1, M16A2, HK416, АК-102</td><td>Высокий</td><td>Высокое</td><td>Редко</td></tr>
+          <tr><td>FMJ</td><td>7.62×51</td><td>M110, MK-14, FAL, АК-308</td><td>Очень высокий</td><td>Высокое</td><td>Нечасто</td></tr>
+          <tr><td>AP</td><td>7.62×51</td><td>M110, MK-14, FAL, АК-308</td><td>Очень высокий</td><td>Очень высокое</td><td>Очень редко</td></tr>
+          <tr><td>HP</td><td>7.62×51</td><td>M110, MK-14, FAL</td><td>Очень высокий (по плоти)</td><td>Низкое</td><td>Редко</td></tr>
+          <tr><td>FMJ</td><td>7.62×54R</td><td>СВД, СВДМ, ДВЛ-10</td><td>Очень высокий</td><td>Высокое</td><td>Часто</td></tr>
+          <tr><td>AP</td><td>7.62×54R</td><td>СВД, СВДМ, ДВЛ-10</td><td>Очень высокий</td><td>Очень высокое</td><td>Очень редко</td></tr>
+          <tr><td>HP</td><td>7.62×54R</td><td>ДВЛ-10</td><td>Очень высокий (по плоти)</td><td>Низкое</td><td>Редко</td></tr>
+          <tr><td>Субзвуковой</td><td>9×39</td><td>ВСС, АС Вал</td><td>Высокий</td><td>Высокое</td><td>Очень редко</td></tr>
+          <tr><td>Дробь</td><td>12/70</td><td>Сайга-12, Мурка</td><td>Высокий (разброс)</td><td>Низкое</td><td>Часто</td></tr>
+          <tr><td>Пуля (снаряд)</td><td>12/70</td><td>Сайга-12</td><td>Очень высокий</td><td>Среднее</td><td>Редко</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subhead">Медицина</div>
+    <div class="twrap">
+      <table class="data">
+        <thead><tr><th>Название</th><th>Категория</th><th>Что делает</th><th>Время</th><th>Вес</th><th>Редкость</th></tr></thead>
+        <tbody>
+          <tr><td>Бинт</td><td>Лечение</td><td>Останавливает кровотечение</td><td>Мгновенно</td><td>0.1 кг</td><td>Очень часто</td></tr>
+          <tr><td>Аптечка (малая)</td><td>Лечение</td><td>+30% здоровья</td><td>3 сек</td><td>0.3 кг</td><td>Часто</td></tr>
+          <tr><td>Аптечка (средняя)</td><td>Лечение</td><td>+60% здоровья</td><td>5 сек</td><td>0.5 кг</td><td>Редко</td></tr>
+          <tr><td>Аптечка (армейская)</td><td>Лечение</td><td>+100% здоровья</td><td>7 сек</td><td>0.7 кг</td><td>Очень редко</td></tr>
+          <tr><td>Антирадин</td><td>Лечение</td><td>Снимает 50% радиации</td><td>2 сек</td><td>0.2 кг</td><td>Часто</td></tr>
+          <tr><td>Антидот</td><td>Лечение</td><td>Снимает отравление</td><td>3 сек</td><td>0.2 кг</td><td>Нечасто</td></tr>
+          <tr><td>Шина</td><td>Лечение</td><td>Снимает перелом</td><td>5 сек</td><td>0.5 кг</td><td>Редко</td></tr>
+          <tr><td>Хирургический набор</td><td>Лечение</td><td>Тяжёлые переломы, конечности</td><td>15 сек</td><td>1.0 кг</td><td>Очень редко</td></tr>
+          <tr><td>Пакет крови</td><td>Восполнение</td><td>+50% объёма крови (при падении ниже 40%)</td><td>4 сек</td><td>0.8 кг</td><td>Редко</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subhead">Локации</div>
+    <div class="twrap">
+      <table class="data">
+        <thead><tr><th>Название</th><th>Тип</th><th>Лут (1–10)</th><th>Сложность (1–10)</th><th>Награда/сложность</th><th>Кто живёт</th></tr></thead>
+        <tbody>
+          <tr><td>Загородный дом</td><td>Жилой</td><td>2</td><td>1</td><td>8 (очень выгодно)</td><td>0–2 мародера с обрезами</td></tr>
+          <tr><td>Деревня (3–5 домов)</td><td>Жилой</td><td>3</td><td>2</td><td>7 (выгодно)</td><td>3–5 мародеров с АКМ/ПП</td></tr>
+          <tr><td>Лесная стоянка</td><td>Открытая</td><td>2</td><td>2</td><td>5</td><td>2–4 мутанта-пса</td></tr>
+          <tr><td>Заброшенный склад</td><td>Индустриальный</td><td>4</td><td>3</td><td>6</td><td>4–6 мародеров</td></tr>
+          <tr><td>Блокпост</td><td>Военный</td><td>6</td><td>5</td><td>5</td><td>6–10 зомбированных военных</td></tr>
+          <tr><td>Железнодорожная станция</td><td>Транспортный</td><td>5</td><td>4</td><td>6</td><td>3–5 мародеров + 1 пулемётчик</td></tr>
+          <tr><td>Завод</td><td>Индустриальный</td><td>7</td><td>6</td><td>5</td><td>5–8 рабочих-мутантов</td></tr>
+          <tr><td>Туннель метро</td><td>Подземный</td><td>6</td><td>7</td><td>4 (опасно)</td><td>10+ мутантов + крысы</td></tr>
+          <tr><td>Бункер</td><td>Подземный</td><td>8</td><td>8</td><td>5</td><td>5–10 мутантов-бегунов</td></tr>
+          <tr><td>Военная база</td><td>Военный</td><td>9</td><td>9</td><td>5</td><td>10–15 военных + 2 тяжелых мутанта</td></tr>
+          <tr><td>Секретная лаборатория</td><td>Подземный</td><td>10</td><td>10</td><td>5</td><td>10–15 элитных врагов</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    «Пепел и лёд» — инди-проект о выживании в ядерную зиму. Временное рабочее название.
+    Сайт собран вручную. Скриншоты и контакты добавляются по мере разработки.
+  </footer>
+</main>
+
+  <!-- Фоновые эффекты -->
+  <div class="fx-layer" aria-hidden="true">
+    <!-- Левый верхний кровавый сплэттер -->
+    <svg class="blood-splat tl" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="bloodGrad" cx="20%" cy="20%" r="80%">
+          <stop offset="0%" stop-color="#8f241a"/>
+          <stop offset="60%" stop-color="#5c120c"/>
+          <stop offset="100%" stop-color="#3c0c08" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Основное пятно -->
+      <path d="M0 0 H340 Q300 20 280 60 Q250 110 220 130 Q190 150 160 140 Q140 130 130 160 Q110 180 90 170 Q60 160 40 190 Q20 210 10 180 Q0 150 0 100 Z" fill="url(#bloodGrad)"/>
+      <!-- Крупные капли -->
+      <circle cx="230" cy="90" r="14" fill="#7a1a10"/>
+      <circle cx="150" cy="180" r="11" fill="#6a150d"/>
+      <circle cx="60" cy="210" r="9" fill="#5c120c"/>
+      <circle cx="280" cy="50" r="7" fill="#8f241a"/>
+      <circle cx="200" cy="40" r="6" fill="#7a1a10"/>
+      <circle cx="310" cy="130" r="5" fill="#6a150d"/>
+      <circle cx="100" cy="90" r="8" fill="#7a1a10"/>
+      <circle cx="40" cy="60" r="6" fill="#8f241a"/>
+      <!-- Средние капли -->
+      <circle cx="250" cy="140" r="4" fill="#5c120c"/>
+      <circle cx="180" cy="110" r="3" fill="#6a150d"/>
+      <circle cx="130" cy="60" r="4" fill="#7a1a10"/>
+      <circle cx="70" cy="130" r="3" fill="#5c120c"/>
+      <circle cx="290" cy="170" r="3" fill="#5c120c"/>
+      <circle cx="210" cy="200" r="3" fill="#6a150d"/>
+      <circle cx="320" cy="90" r="4" fill="#7a1a10"/>
+      <circle cx="160" cy="230" r="3" fill="#5c120c"/>
+      <!-- Мелкие брызги (генерируем кучу) -->
+      <g fill="#8f241a">
+        <circle cx="60" cy="30" r="2"/><circle cx="95" cy="25" r="2"/>
+        <circle cx="140" cy="30" r="2.5"/><circle cx="175" cy="20" r="2"/>
+        <circle cx="215" cy="25" r="2"/><circle cx="260" cy="30" r="2.5"/>
+        <circle cx="300" cy="20" r="2"/><circle cx="330" cy="40" r="2"/>
+        <circle cx="45" cy="80" r="2"/><circle cx="75" cy="70" r="2.5"/>
+        <circle cx="110" cy="50" r="2"/><circle cx="155" cy="60" r="2"/>
+        <circle cx="190" cy="75" r="2.5"/><circle cx="240" cy="65" r="2"/>
+        <circle cx="275" cy="80" r="2"/><circle cx="310" cy="105" r="2.5"/>
+        <circle cx="30" cy="120" r="2"/><circle cx="65" cy="150" r="2"/>
+        <circle cx="100" cy="130" r="2.5"/><circle cx="145" cy="145" r="2"/>
+        <circle cx="175" cy="160" r="2"/><circle cx="215" cy="170" r="2.5"/>
+        <circle cx="255" cy="175" r="2"/><circle cx="290" cy="200" r="2"/>
+        <circle cx="320" cy="215" r="2"/><circle cx="45" cy="185" r="2"/>
+        <circle cx="80" cy="200" r="2.5"/><circle cx="120" cy="210" r="2"/>
+        <circle cx="165" cy="205" r="2"/><circle cx="200" cy="230" r="2"/>
+        <circle cx="240" cy="220" r="2.5"/><circle cx="270" cy="240" r="2"/>
+        <circle cx="310" cy="245" r="2"/><circle cx="25" cy="150" r="2"/>
+      </g>
+      <g fill="#5c120c">
+        <circle cx="50" cy="45" r="1.5"/><circle cx="85" cy="40" r="1.5"/>
+        <circle cx="120" cy="35" r="1.5"/><circle cx="165" cy="45" r="1.5"/>
+        <circle cx="205" cy="50" r="1.5"/><circle cx="245" cy="55" r="1.5"/>
+        <circle cx="285" cy="60" r="1.5"/><circle cx="325" cy="70" r="1.5"/>
+        <circle cx="40" cy="100" r="1.5"/><circle cx="80" cy="110" r="1.5"/>
+        <circle cx="125" cy="95" r="1.5"/><circle cx="170" cy="105" r="1.5"/>
+        <circle cx="210" cy="120" r="1.5"/><circle cx="260" cy="115" r="1.5"/>
+        <circle cx="300" cy="150" r="1.5"/><circle cx="335" cy="160" r="1.5"/>
+        <circle cx="55" cy="170" r="1.5"/><circle cx="110" cy="175" r="1.5"/>
+        <circle cx="155" cy="195" r="1.5"/><circle cx="195" cy="190" r="1.5"/>
+        <circle cx="235" cy="205" r="1.5"/><circle cx="280" cy="215" r="1.5"/>
+        <circle cx="20" cy="200" r="1.5"/><circle cx="65" cy="225" r="1.5"/>
+        <circle cx="105" cy="235" r="1.5"/><circle cx="150" cy="245" r="1.5"/>
+      </g>
+      <g fill="#3c0c08">
+        <circle cx="70" cy="15" r="1"/><circle cx="115" cy="20" r="1"/>
+        <circle cx="160" cy="10" r="1"/><circle cx="200" cy="15" r="1"/>
+        <circle cx="250" cy="20" r="1"/><circle cx="295" cy="15" r="1"/>
+        <circle cx="30" cy="65" r="1"/><circle cx="105" cy="75" r="1"/>
+        <circle cx="150" cy="85" r="1"/><circle cx="195" cy="95" r="1"/>
+        <circle cx="235" cy="100" r="1"/><circle cx="305" cy="120" r="1"/>
+        <circle cx="55" cy="140" r="1"/><circle cx="95" cy="155" r="1"/>
+        <circle cx="140" cy="165" r="1"/><circle cx="185" cy="175" r="1"/>
+        <circle cx="225" cy="185" r="1"/><circle cx="265" cy="195" r="1"/>
+        <circle cx="15" cy="110" r="1"/><circle cx="35" cy="160" r="1"/>
+        <circle cx="75" cy="185" r="1"/><circle cx="115" cy="195" r="1"/>
+        <circle cx="160" cy="215" r="1"/><circle cx="205" cy="220" r="1"/>
+        <circle cx="250" cy="230" r="1"/><circle cx="295" cy="235" r="1"/>
+        <circle cx="330" cy="240" r="1"/><circle cx="10" cy="180" r="1"/>
+      </g>
+    </svg>
+
+    <!-- Правый верхний (зеркальный) -->
+    <svg class="blood-splat tr" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
+      <use href="#bloodSplatContent"/>
+    </svg>
+
+    <div class="fire">
+      <canvas id="fire"></canvas>
+      <div class="glow"></div>
+    </div>
+
+    <canvas class="snow-canvas" id="snow"></canvas>
+  </div>
+
+  <!-- Скрытый SVG с контентом для переиспользования -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <g id="bloodSplatContent">
+        <path d="M0 0 H340 Q300 20 280 60 Q250 110 220 130 Q190 150 160 140 Q140 130 130 160 Q110 180 90 170 Q60 160 40 190 Q20 210 10 180 Q0 150 0 100 Z" fill="#7a1a10" opacity=".9"/>
+        <circle cx="230" cy="90" r="14" fill="#7a1a10"/>
+        <circle cx="150" cy="180" r="11" fill="#6a150d"/>
+        <circle cx="60" cy="210" r="9" fill="#5c120c"/>
+        <circle cx="280" cy="50" r="7" fill="#8f241a"/>
+        <circle cx="200" cy="40" r="6" fill="#7a1a10"/>
+        <circle cx="310" cy="130" r="5" fill="#6a150d"/>
+        <circle cx="100" cy="90" r="8" fill="#7a1a10"/>
+        <circle cx="40" cy="60" r="6" fill="#8f241a"/>
+        <g fill="#8f241a">
+          <circle cx="60" cy="30" r="2"/><circle cx="95" cy="25" r="2"/>
+          <circle cx="140" cy="30" r="2.5"/><circle cx="175" cy="20" r="2"/>
+          <circle cx="215" cy="25" r="2"/><circle cx="260" cy="30" r="2.5"/>
+          <circle cx="300" cy="20" r="2"/><circle cx="330" cy="40" r="2"/>
+          <circle cx="45" cy="80" r="2"/><circle cx="75" cy="70" r="2.5"/>
+          <circle cx="110" cy="50" r="2"/><circle cx="155" cy="60" r="2"/>
+          <circle cx="190" cy="75" r="2.5"/><circle cx="240" cy="65" r="2"/>
+          <circle cx="275" cy="80" r="2"/><circle cx="310" cy="105" r="2.5"/>
+          <circle cx="30" cy="120" r="2"/><circle cx="65" cy="150" r="2"/>
+          <circle cx="100" cy="130" r="2.5"/><circle cx="145" cy="145" r="2"/>
+          <circle cx="175" cy="160" r="2"/><circle cx="215" cy="170" r="2.5"/>
+          <circle cx="255" cy="175" r="2"/><circle cx="290" cy="200" r="2"/>
+          <circle cx="320" cy="215" r="2"/><circle cx="45" cy="185" r="2"/>
+          <circle cx="80" cy="200" r="2.5"/><circle cx="120" cy="210" r="2"/>
+          <circle cx="165" cy="205" r="2"/><circle cx="200" cy="230" r="2"/>
+          <circle cx="240" cy="220" r="2.5"/><circle cx="270" cy="240" r="2"/>
+          <circle cx="310" cy="245" r="2"/><circle cx="25" cy="150" r="2"/>
+        </g>
+        <g fill="#5c120c">
+          <circle cx="50" cy="45" r="1.5"/><circle cx="85" cy="40" r="1.5"/>
+          <circle cx="120" cy="35" r="1.5"/><circle cx="165" cy="45" r="1.5"/>
+          <circle cx="205" cy="50" r="1.5"/><circle cx="245" cy="55" r="1.5"/>
+          <circle cx="285" cy="60" r="1.5"/><circle cx="325" cy="70" r="1.5"/>
+          <circle cx="40" cy="100" r="1.5"/><circle cx="80" cy="110" r="1.5"/>
+          <circle cx="125" cy="95" r="1.5"/><circle cx="170" cy="105" r="1.5"/>
+          <circle cx="210" cy="120" r="1.5"/><circle cx="260" cy="115" r="1.5"/>
+          <circle cx="300" cy="150" r="1.5"/><circle cx="335" cy="160" r="1.5"/>
+          <circle cx="55" cy="170" r="1.5"/><circle cx="110" cy="175" r="1.5"/>
+          <circle cx="155" cy="195" r="1.5"/><circle cx="195" cy="190" r="1.5"/>
+          <circle cx="235" cy="205" r="1.5"/><circle cx="280" cy="215" r="1.5"/>
+          <circle cx="20" cy="200" r="1.5"/><circle cx="65" cy="225" r="1.5"/>
+          <circle cx="105" cy="235" r="1.5"/><circle cx="150" cy="245" r="1.5"/>
+        </g>
+        <g fill="#3c0c08">
+          <circle cx="70" cy="15" r="1"/><circle cx="115" cy="20" r="1"/>
+          <circle cx="160" cy="10" r="1"/><circle cx="200" cy="15" r="1"/>
+          <circle cx="250" cy="20" r="1"/><circle cx="295" cy="15" r="1"/>
+          <circle cx="30" cy="65" r="1"/><circle cx="105" cy="75" r="1"/>
+          <circle cx="150" cy="85" r="1"/><circle cx="195" cy="95" r="1"/>
+          <circle cx="235" cy="100" r="1"/><circle cx="305" cy="120" r="1"/>
+          <circle cx="55" cy="140" r="1"/><circle cx="95" cy="155" r="1"/>
+          <circle cx="140" cy="165" r="1"/><circle cx="185" cy="175" r="1"/>
+          <circle cx="225" cy="185" r="1"/><circle cx="265" cy="195" r="1"/>
+          <circle cx="15" cy="110" r="1"/><circle cx="35" cy="160" r="1"/>
+          <circle cx="75" cy="185" r="1"/><circle cx="115" cy="195" r="1"/>
+          <circle cx="160" cy="215" r="1"/><circle cx="205" cy="220" r="1"/>
+          <circle cx="250" cy="230" r="1"/><circle cx="295" cy="235" r="1"/>
+          <circle cx="330" cy="240" r="1"/><circle cx="10" cy="180" r="1"/>
+        </g>
+      </g>
+    </defs>
+  </svg>
+
+<script>
+  var details = Array.prototype.slice.call(document.querySelectorAll('.detail'));
+
+  function closeAll() {
+    details.forEach(function (d) {
+      d.classList.remove('visible');
+      d.setAttribute('aria-hidden', 'true');
+    });
+  }
+
+  function openPanel(id) {
+    closeAll();
+    var panel = document.getElementById(id);
+    if (!panel) return;
+    panel.classList.add('visible');
+    panel.setAttribute('aria-hidden', 'false');
+  }
+
+  document.querySelectorAll('.card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      openPanel(card.getAttribute('data-d'));
+    });
+  });
+
+  document.querySelectorAll('.detail .close').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      closeAll();
+    });
+  });
+
+  document.querySelectorAll('.detail').forEach(function (panel) {
+    panel.addEventListener('click', function (e) {
+      if (e.target === panel) closeAll();
+    });
+  });
+
+  // Снежинки
+  (function () {
+    var canvas = document.getElementById('snow');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W, H, parts = [], count;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    count = Math.floor(window.innerWidth / 6);
+    if (count > 90) count = 90;
+
+    for (var i = 0; i < count; i++) {
+      parts.push({
+        x: Math.random() * W,
+        y: Math.random() * -H,
+        r: 0.8 + Math.random() * 1.8,
+        s: 0.4 + Math.random() * 0.9,
+        o: 0.35 + Math.random() * 0.5,
+        w: (Math.random() - 0.5) * 0.6
+      });
+    }
+
+    function step() {
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        p.y += p.s;
+        p.x += p.w;
+        if (p.y > H) { p.y = -6; p.x = Math.random() * W; }
+        if (p.x > W + 6) p.x = -6;
+        if (p.x < -6) p.x = W + 6;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(230,240,250,' + p.o + ')';
+        ctx.fill();
+      }
+      requestAnimationFrame(step);
+    }
+    if (!reduced) step();
+  })();
+
+  // Огонь
+  (function () {
+    var canvas = document.getElementById('fire');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var W, H, parts = [];
+    var colors = ['255,130,30', '255,90,20', '255,60,10', '255,160,60', '200,40,10'];
+    var gray = [110,118,128];
+
+    function resize() {
+      var r = canvas.getBoundingClientRect();
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = r.width;
+      H = r.height;
+      canvas.width = Math.floor(r.width * dpr);
+      canvas.height = Math.floor(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function spawnFlame(x) {
+      parts.push({
+        x: x, y: H, vy: -(2.5 + Math.random() * 2.5),
+        vx: (Math.random() - 0.5) * 1.0,
+        life: 1, r: 8 + Math.random() * 10,
+        c: colors[(Math.random() * colors.length) | 0],
+        sm: false, spd: 0.02 + Math.random() * 0.02
+      });
+    }
+    function spawnSmoke(x) {
+      parts.push({
+        x: x, y: H, vy: -(0.7 + Math.random() * 0.5),
+        vx: (Math.random() - 0.5) * 0.4,
+        life: 1, r: 14 + Math.random() * 14,
+        c: null, sm: true, spd: 0.007 + Math.random() * 0.007
+      });
+    }
+
+    function step() {
+      ctx.clearRect(0, 0, W, H);
+
+      if (parts.length < 220) {
+        var n = 2 + (Math.random() * 2 | 0);
+        for (var i = 0; i < n; i++) spawnFlame(Math.random() * W);
+        if (Math.random() < 0.3) spawnSmoke(Math.random() * W);
+      }
+
+      for (var j = parts.length - 1; j >= 0; j--) {
+        var p = parts[j];
+        if (p.sm) { p.vy -= 0.01; } else { p.vy += 0.06; }
+        p.x += p.vx + (p.sm ? Math.sin(p.life * 40) * 0.25 : 0);
+        p.y += p.vy;
+        p.life -= p.spd;
+        if (p.life <= 0 || p.y < -50 || p.y > H + 20 || p.x < -80 || p.x > W + 80) {
+          parts.splice(j, 1); continue;
+        }
+        var a = Math.max(0, Math.min(1, p.life));
+        if (p.sm) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r * (1.3 - a * 0.3), 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(' + gray[0] + ',' + gray[1] + ',' + gray[2] + ',' + (a * 0.18) + ')';
+          ctx.fill();
+        } else {
+          var rr = p.r * (0.7 + a * 0.8);
+          var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr);
+          grad.addColorStop(0, 'rgba(255,230,180,' + (a * 0.85) + ')');
+          grad.addColorStop(0.35, 'rgba(' + p.c + ',' + (a * 0.7) + ')');
+          grad.addColorStop(1, 'rgba(' + p.c + ',0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      requestAnimationFrame(step);
+    }
+    if (!reduced) step();
+  })();
+</script>
+</body>
+</html>
