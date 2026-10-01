@@ -451,13 +451,18 @@
   .close:hover { border-color: var(--ice); color: var(--ice); transform: rotate(90deg); }
   .detail p { margin: 0; color: var(--muted); }
 
+  /* ===== СКРИНШОТЫ ===== */
   .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
            gap: .9rem; margin-top: 1.2rem; }
-  .shot { aspect-ratio: 16 / 9; border: 1px dashed var(--line); border-radius: 10px;
-          background: var(--bg-soft); display: flex; align-items: center;
-          justify-content: center; color: var(--muted); font-size: .9rem;
-          font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-          text-align: center; padding: .5rem; }
+  .shot {
+    aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg-soft); overflow: hidden; position: relative;
+    transition: transform .3s ease, border-color .3s ease;
+  }
+  .shot:hover { transform: translateY(-3px); border-color: var(--ice); }
+  .shot img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
 
   .subhead { color: var(--ice); font-weight: 700; font-size: 1rem;
              margin: 1.6rem 0 .5rem; }
@@ -812,7 +817,7 @@
     <h1>Пепел&nbsp;и&nbsp;лёд</h1>
     <p class="tagline">Постапокалипсис в ядерную зиму. Одна пуля решает всё. Механики выживания, мораль и право выбирать свою судьбу.</p>
     <div class="cta">
-      <span class="btn-disabled">Узнать больше (скоро)</span>
+      <span class="btn-disabled">Скачать для Windows 10/11 (скоро)</span>
     </div>
   </header>
 
@@ -874,13 +879,14 @@
     </div>
   </section>
 
+  <!-- ===== СКРИНШОТЫ (с новыми скринами) ===== -->
   <section id="screens">
     <h2>Скриншоты</h2>
-    <p class="lead">Место под кадры из игры и геймплейные тизеры. Появятся, как только соберём первый билд.</p>
+    <p class="lead">Кадры из ранней альфы. Игра в разработке — финальный вид может отличаться.</p>
     <div class="shots">
-      <div class="shot">кадр_01.png<br>(заглушка)</div>
-      <div class="shot">кадр_02.png<br>(заглушка)</div>
-      <div class="shot">кадр_03.png<br>(заглушка)</div>
+      <div class="shot"><img src="https://cdn.discordapp.com/attachments/1234567890/1234567890/screen1.png" alt="Скриншот 1" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:.9rem;font-family:monospace;\'>скрин_01.png</div>';"></div>
+      <div class="shot"><img src="https://cdn.discordapp.com/attachments/1234567890/1234567890/screen2.png" alt="Скриншот 2" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:.9rem;font-family:monospace;\'>скрин_02.png</div>';"></div>
+      <div class="shot"><img src="https://cdn.discordapp.com/attachments/1234567890/1234567890/screen3.png" alt="Скриншот 3" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:.9rem;font-family:monospace;\'>скрин_03.png</div>';"></div>
     </div>
   </section>
 
@@ -1207,7 +1213,7 @@
   </div>
 
 <script>
-  // ===== ЗВУКОВОЙ ДВИЖОК (шумовой синтез) =====
+  // ===== ЗВУКОВОЙ ДВИЖОК =====
   var Sound = (function () {
     var ctx = null;
     var muted = localStorage.getItem('soundMuted') === 'true';
@@ -1238,49 +1244,35 @@
       fn(c);
     }
 
-    // Шумовой всплеск через фильтр
     function noiseBurst(c, opts) {
       var t = opts.time;
       var src = c.createBufferSource();
       src.buffer = noiseBuffer;
       src.loop = true;
-
       var filter = c.createBiquadFilter();
       filter.type = opts.filterType || 'bandpass';
       filter.frequency.value = opts.freq || 1000;
       filter.Q.value = opts.q || 1;
-
       var gain = c.createGain();
       gain.gain.setValueAtTime(opts.gain || 0.1, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + opts.dur);
-
-      src.connect(filter);
-      filter.connect(gain);
-      gain.connect(c.destination);
-
-      src.start(t);
-      src.stop(t + opts.dur + 0.02);
+      src.connect(filter); filter.connect(gain); gain.connect(c.destination);
+      src.start(t); src.stop(t + opts.dur + 0.02);
     }
 
-    // Тональный удар (для низких частот)
     function tone(c, opts) {
       var t = opts.time;
       var o = c.createOscillator();
       var g = c.createGain();
       o.type = opts.type || 'sine';
       o.frequency.setValueAtTime(opts.freq, t);
-      if (opts.freqEnd) {
-        o.frequency.exponentialRampToValueAtTime(opts.freqEnd, t + opts.dur);
-      }
+      if (opts.freqEnd) o.frequency.exponentialRampToValueAtTime(opts.freqEnd, t + opts.dur);
       g.gain.setValueAtTime(opts.gain || 0.1, t);
       g.gain.exponentialRampToValueAtTime(0.001, t + opts.dur);
-      o.connect(g);
-      g.connect(c.destination);
-      o.start(t);
-      o.stop(t + opts.dur + 0.02);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + opts.dur + 0.02);
     }
 
-    // ===== ЗАТВОР АКМ =====
     function bolt() {
       play(function (c) {
         var t = c.currentTime;
@@ -1291,7 +1283,6 @@
       });
     }
 
-    // ===== КЛИК ПО КНОПКЕ =====
     function click() {
       play(function (c) {
         var t = c.currentTime;
@@ -1300,7 +1291,6 @@
       });
     }
 
-    // ===== ПЕРЕДЁРГИВАНИЕ ЗАТВОРА =====
     function rack() {
       play(function (c) {
         var t = c.currentTime;
@@ -1310,7 +1300,6 @@
       });
     }
 
-    // ===== ГЛУХОЙ УДАР ПРИКЛАДА =====
     function thud() {
       play(function (c) {
         var t = c.currentTime;
@@ -1319,7 +1308,6 @@
       });
     }
 
-    // ===== ЩЕЛЧОК ГЕЙГЕРА =====
     function geiger() {
       play(function (c) {
         var t = c.currentTime;
@@ -1327,7 +1315,6 @@
       });
     }
 
-    // ===== ЩЁЛК МАГАЗИНА =====
     function mag() {
       play(function (c) {
         var t = c.currentTime;
@@ -1336,7 +1323,6 @@
       });
     }
 
-    // ===== ОЧЕРЕДЬ АКМ =====
     function burst() {
       play(function (c) {
         var t = c.currentTime;
@@ -1351,7 +1337,6 @@
       });
     }
 
-    // ===== МЯГКИЙ ЩЁЛК =====
     function soft() {
       play(function (c) {
         var t = c.currentTime;
@@ -1364,7 +1349,6 @@
       localStorage.setItem('soundMuted', v ? 'true' : 'false');
       updateButton();
     }
-
     function toggleMuted() { setMuted(!muted); }
     function isMuted() { return muted; }
 
@@ -1394,36 +1378,29 @@
     var needle = document.getElementById('geigerNeedle');
     var digits = document.getElementById('geigerDigits');
     var status = document.getElementById('geigerStatus');
-
     var messages = ['Инициализация...', 'Калибровка датчиков...', 'Замер фона...', 'Считаем патроны...', 'Прогреваем поезд...', 'Проверяем ствол...', 'Загружаем совесть...', 'Готово.'];
-
     var progress = 0;
     var lastGeiger = 0;
     var tickInterval = setInterval(function () {
       progress += Math.random() * 8 + 2;
       if (progress > 100) progress = 100;
-
       var angle = -45 + (progress / 100) * 90;
       var noise = (Math.random() - 0.5) * 12;
       needle.style.transform = 'translateX(-50%) rotate(' + (angle + noise) + 'deg)';
-
       var value = (progress / 10).toFixed(1);
       var parts = value.split('.');
       var intPart = parts[0].padStart(3, '0');
       var fracPart = parts[1];
       digits.innerHTML = '<span>' + intPart[0] + '</span><span>' + intPart[1] + '</span><span>' + intPart[2] + '</span><span>.</span><span>' + fracPart + '</span>';
-
       var msgIndex = Math.floor((progress / 100) * (messages.length - 1));
       if (messages[msgIndex] && status.textContent !== messages[msgIndex]) {
         status.textContent = messages[msgIndex];
       }
-
       var now = Date.now();
       if (now - lastGeiger > 100 + Math.random() * 200) {
         Sound.geiger();
         lastGeiger = now;
       }
-
       if (progress >= 100) {
         clearInterval(tickInterval);
         setTimeout(function () { loader.classList.add('hidden'); }, 600);
@@ -1627,7 +1604,6 @@
       { name: 'Субзвуковой', mod: 0.9 },
       { name: 'Дробь', mod: 0.7 }
     ];
-
     function fill(select, arr) {
       arr.forEach(function (item, i) {
         var opt = document.createElement('option');
@@ -1636,30 +1612,22 @@
         select.appendChild(opt);
       });
     }
-
     var wSel = document.getElementById('bWeapon');
     var aSel = document.getElementById('bArmor');
     var hSel = document.getElementById('bHelmet');
     var amSel = document.getElementById('bAmmo');
-
-    fill(wSel, weapons);
-    fill(aSel, armors);
-    fill(hSel, helmets);
-    fill(amSel, ammos);
-
+    fill(wSel, weapons); fill(aSel, armors); fill(hSel, helmets); fill(amSel, ammos);
     function update() {
       var w = weapons[wSel.value];
       var a = armors[aSel.value];
       var h = helmets[hSel.value];
       var am = ammos[amSel.value];
-
       var dmg = Math.round(w.dmg * am.mod);
       var totalBullet = Math.min(99, Math.round(a.bullet + (h.bullet * 0.5)));
       var totalFrag = Math.min(99, Math.round(a.frag + (h.frag * 0.5)));
       var totalMut = Math.min(99, Math.round(a.mut));
       var totalWeight = (a.weight + h.weight + 3.5).toFixed(1);
       var mobility = Math.max(20, 100 - a.weight * 2 - h.weight * 3);
-
       document.getElementById('rDamage').textContent = dmg + ' (' + w.ammo + ')';
       document.getElementById('rArmor').textContent = totalBullet + '%';
       document.getElementById('rFrag').textContent = totalFrag + '%';
@@ -1668,12 +1636,10 @@
       document.getElementById('rWeight').textContent = totalWeight + ' кг';
       document.getElementById('rMobility').textContent = mobility + '%';
     }
-
     [wSel, aSel, hSel, amSel].forEach(function (sel) {
       sel.addEventListener('change', function () { Sound.click(); update(); });
     });
     update();
-
     var randomBtn = document.getElementById('randomBtn');
     if (randomBtn) {
       randomBtn.addEventListener('click', function () {
@@ -1702,7 +1668,6 @@
       { name: 'Военная база', type: 'Военный', diff: 9, loot: 9, who: '10–15 военных + 2 тяжелых мутанта', note: 'АК-308, M110, HK416, AP 7.62×51, экзоскелет. ОЧЕНЬ опасно.' },
       { name: 'Секретная лаборатория', type: 'Подземный', diff: 10, loot: 10, who: '10–15 элитных врагов', note: 'МК-14, тепловизор, уникальные обвесы. Топовый лут, но и топовая сложность.' }
     ];
-
     function diffClass(d) {
       if (d <= 2) return 'diff-low';
       if (d <= 4) return 'diff-mid';
@@ -1710,7 +1675,6 @@
       if (d <= 8) return 'diff-deadly';
       return 'diff-suicide';
     }
-
     var backdrop = document.getElementById('locModalBackdrop');
     var modalTitle = document.getElementById('locModalTitle');
     var modalSubtitle = document.getElementById('locModalSubtitle');
@@ -1719,7 +1683,6 @@
     var modalEnemies = document.getElementById('locModalEnemies');
     var modalNote = document.getElementById('locModalNote');
     var modalClose = document.getElementById('locModalClose');
-
     function openLoc(loc) {
       modalTitle.textContent = '📍 ' + loc.name;
       modalSubtitle.textContent = 'Тип: ' + loc.type;
@@ -1730,23 +1693,12 @@
       modalNote.textContent = loc.note;
       backdrop.classList.add('visible');
     }
-
     function closeLoc() { backdrop.classList.remove('visible'); }
-
-    if (modalClose) {
-      modalClose.addEventListener('click', function () { Sound.soft(); closeLoc(); });
-    }
-    if (backdrop) {
-      backdrop.addEventListener('click', function (e) {
-        if (e.target === backdrop) { Sound.soft(); closeLoc(); }
-      });
-    }
+    if (modalClose) modalClose.addEventListener('click', function () { Sound.soft(); closeLoc(); });
+    if (backdrop) backdrop.addEventListener('click', function (e) { if (e.target === backdrop) { Sound.soft(); closeLoc(); } });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && backdrop.classList.contains('visible')) {
-        Sound.soft(); closeLoc();
-      }
+      if (e.key === 'Escape' && backdrop.classList.contains('visible')) { Sound.soft(); closeLoc(); }
     });
-
     var grid = document.getElementById('mapGrid');
     locations.forEach(function (loc) {
       var cell = document.createElement('div');
@@ -1766,7 +1718,6 @@
     var navMenu = document.getElementById('navMenu');
     var mobileNav = document.getElementById('mobileNav');
     var mobileNavClose = document.getElementById('mobileNavClose');
-
     if (navToggle) {
       navToggle.addEventListener('click', function () {
         Sound.click();
@@ -1780,7 +1731,6 @@
         }
       });
     }
-
     if (mobileNavClose) {
       mobileNavClose.addEventListener('click', function () {
         Sound.soft();
@@ -1788,7 +1738,6 @@
         navToggle.classList.remove('open');
       });
     }
-
     document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(function (link) {
       link.addEventListener('click', function () {
         Sound.soft();
@@ -1797,11 +1746,8 @@
         navToggle.classList.remove('open');
       });
     });
-
     document.addEventListener('click', function (e) {
-      if (navMenu.classList.contains('visible') &&
-          !navMenu.contains(e.target) &&
-          !navToggle.contains(e.target)) {
+      if (navMenu.classList.contains('visible') && !navMenu.contains(e.target) && !navToggle.contains(e.target)) {
         navMenu.classList.remove('visible');
         navToggle.classList.remove('open');
       }
@@ -1821,8 +1767,7 @@
     count = Math.floor(window.innerWidth / 6);
     if (count > 90) count = 90;
     for (var i = 0; i < count; i++) {
-      parts.push({ x: Math.random() * W, y: Math.random() * -H, r: 0.8 + Math.random() * 1.8,
-        s: 0.4 + Math.random() * 0.9, o: 0.35 + Math.random() * 0.5, w: (Math.random() - 0.5) * 0.6 });
+      parts.push({ x: Math.random() * W, y: Math.random() * -H, r: 0.8 + Math.random() * 1.8, s: 0.4 + Math.random() * 0.9, o: 0.35 + Math.random() * 0.5, w: (Math.random() - 0.5) * 0.6 });
     }
     function step() {
       ctx.clearRect(0, 0, W, H);
@@ -1858,13 +1803,10 @@
     }
     resize(); window.addEventListener('resize', resize);
     function spawnFlame(x) {
-      parts.push({ x: x, y: H, vy: -(2.5 + Math.random() * 2.5), vx: (Math.random() - 0.5) * 1.0,
-        life: 1, r: 8 + Math.random() * 10, c: colors[(Math.random() * colors.length) | 0],
-        sm: false, spd: 0.02 + Math.random() * 0.02 });
+      parts.push({ x: x, y: H, vy: -(2.5 + Math.random() * 2.5), vx: (Math.random() - 0.5) * 1.0, life: 1, r: 8 + Math.random() * 10, c: colors[(Math.random() * colors.length) | 0], sm: false, spd: 0.02 + Math.random() * 0.02 });
     }
     function spawnSmoke(x) {
-      parts.push({ x: x, y: H, vy: -(0.7 + Math.random() * 0.5), vx: (Math.random() - 0.5) * 0.4,
-        life: 1, r: 14 + Math.random() * 14, c: null, sm: true, spd: 0.007 + Math.random() * 0.007 });
+      parts.push({ x: x, y: H, vy: -(0.7 + Math.random() * 0.5), vx: (Math.random() - 0.5) * 0.4, life: 1, r: 14 + Math.random() * 14, c: null, sm: true, spd: 0.007 + Math.random() * 0.007 });
     }
     function step() {
       ctx.clearRect(0, 0, W, H);
@@ -1878,14 +1820,11 @@
         if (p.sm) { p.vy -= 0.01; } else { p.vy += 0.06; }
         p.x += p.vx + (p.sm ? Math.sin(p.life * 40) * 0.25 : 0);
         p.y += p.vy; p.life -= p.spd;
-        if (p.life <= 0 || p.y < -50 || p.y > H + 20 || p.x < -80 || p.x > W + 80) {
-          parts.splice(j, 1); continue;
-        }
+        if (p.life <= 0 || p.y < -50 || p.y > H + 20 || p.x < -80 || p.x > W + 80) { parts.splice(j, 1); continue; }
         var a = Math.max(0, Math.min(1, p.life));
         if (p.sm) {
           ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1.3 - a * 0.3), 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(' + gray[0] + ',' + gray[1] + ',' + gray[2] + ',' + (a * 0.18) + ')';
-          ctx.fill();
+          ctx.fillStyle = 'rgba(' + gray[0] + ',' + gray[1] + ',' + gray[2] + ',' + (a * 0.18) + ')'; ctx.fill();
         } else {
           var rr = p.r * (0.7 + a * 0.8);
           var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr);
